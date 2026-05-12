@@ -1,0 +1,224 @@
+<form [formGroup]="form()!">
+  <div class="mb-3 relative overflow-x-auto">
+    <div class="max-h-64">
+      <table
+        class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+      >
+        <thead
+          class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400"
+        >
+          <tr>
+            <th scope="col" class="w-3/4 px-6 py-3 rounded-s-lg">Repuesto</th>
+            <th scope="col" class="px-6 py-3">Cantidad</th>
+            <th scope="col" class="w-1/5 px-6 py-3">Precio</th>
+            <th scope="col" class="w-1/5 px-6 py-3">P.Final</th>
+            <th scope="col" class="px-6 py-3">Acción</th>
+          </tr>
+        </thead>
+        <tbody formArrayName="spare_parts" class="max-h-[240px]">
+          @for (item of partsArray()?.controls; let i = $index;track item) {
+          <tr [formGroupName]="i" class="bg-white dark:bg-gray-800">
+            <th
+              scope="row"
+              class="py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+            >
+              <div class="relative w-full">
+                <!-- Input con filtro -->
+                <div class="relative w-full cursor-pointer">
+                  <input
+                    type="text"
+                    id="combobox-input-{{ i }}"
+                    [value]="getSearchText(i)"
+                    (input)="setSearchText(i, $event)"
+                    (click)="toggleDropdown(i, $event)"
+                    placeholder="Seleccione un producto"
+                    class="w-full py-2 px-3 border border-gray-300 rounded-lg bg-white text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                  />
+                  <div
+                    class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5 text-gray-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- El dropdown ahora se renderiza en el portal -->
+
+                <!-- Input oculto para el formulario -->
+                <input type="hidden" formControlName="_id" />
+              </div>
+            </th>
+
+            <td class="px-6 py-2">
+              <div class="flex items-center">
+                <button
+                  type="button"
+                  id="decrement-button"
+                  (click)="decrement($index)"
+                  [disabled]="readonly()"
+                  [class.opacity-50]="readonly()"
+                  [class.cursor-not-allowed]="readonly()"
+                  data-input-counter-decrement="counter-input"
+                  class="cursor-pointer inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700"
+                >
+                  <svg
+                    class="h-2.5 w-2.5 text-gray-900 dark:text-white"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 18 2"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M1 1h16"
+                    />
+                  </svg>
+                </button>
+                <input
+                  type="text"
+                  id="counter-input"
+                  readonly
+                  data-input-counter
+                  class="w-10 shrink-0 border-0 bg-transparent text-center text-sm font-medium text-gray-900 focus:outline-none focus:ring-0 dark:text-white"
+                  placeholder=""
+                  formControlName="amount"
+                  required
+                />
+                <button
+                  type="button"
+                  id="increment-button"
+                  [disabled]="readonly() || isMaxStockReached($index)"
+                  (click)="increment($index)"
+                  data-input-counter-increment="counter-input"
+                  class="cursor-pointer disabled:cursor-not-allowed inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700"
+                >
+                  <svg
+                    class="h-2.5 w-2.5 text-gray-900 dark:text-white"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 18 18"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 1v16M1 9h16"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </td>
+            <td class="px-6 py-2">
+              <input
+                type="text"
+                min="0"
+                formControlName="sale_price"
+                [readOnly]="readonly()"
+                class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              />
+              <div class="absolute">
+                @if
+                (partsArray()?.at(i)?.get('sale_price')?.hasError('zeroNotAllowed'))
+                {
+                <app-tool-tip
+                  [message]="'Debe ingresar el costo'"
+                ></app-tool-tip>
+                }
+                @if(partsArray()?.at(i)?.get('sale_price')?.hasError('required')&&(partsArray()?.at(i)?.get('sale_price')?.touched
+                ||partsArray()?.at(i)?.get('sale_pricte')?.dirty )){
+                <app-tool-tip
+                  [message]="'Debe ingresar el costo.'"
+                ></app-tool-tip>
+                }
+                @if(partsArray()?.at(i)?.get('sale_price')?.hasError('invalidNumber')){
+                <app-tool-tip
+                  [message]="'Solo se permite numeros positivos.'"
+                ></app-tool-tip>
+                }
+              </div>
+            </td>
+            <td class="px-6 py-2">
+              <input
+                type="text"
+                readonly
+                formControlName="totalIn"
+                class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              />
+            </td>
+            <td class="px-6 py-2">
+              <button
+                type="button"
+                (click)="delete(item)"
+                [disabled]="readonly()"
+                [class.opacity-50]="readonly()"
+                [class.cursor-not-allowed]="readonly()"
+                class="text-white cursor-pointer font-medium rounded-lg text-sm p-2 hover:bg-red-300"
+              >
+                <svg
+                  class="w-6 h-6 text-gray-800 dark:text-white"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="m15 9-6 6m0-6 6 6m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                  />
+                </svg>
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  @if(!readonly()){
+  <div class="flex justify-end mt-4 mb-4">
+    <button
+      type="button"
+      (click)="add()"
+      class="cursor-pointer flex items-center text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-700 dark:hover:bg-blue-800 dark:focus:ring-blue-900"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="mr-2"
+      >
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M12 8v8"></path>
+        <path d="M8 12h8"></path>
+      </svg>
+      Agregar Repuesto
+    </button>
+  </div>
+  }
+</form>

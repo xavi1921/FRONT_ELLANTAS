@@ -1,0 +1,237 @@
+<form [formGroup]="form()!">
+  <div class="mb-3 relative overflow-x-auto">
+    <div class="max-h-64 overflow-y-auto overflow-x-auto">
+      <table class="w-full min-w-[600px] table-fixed text-left rtl:text-right">
+        <thead
+          class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400"
+        >
+          <tr>
+            <th scope="col" class="w-80 sm:w-2/3 px-6 py-3 rounded-s-lg">
+              Actividad
+            </th>
+            <th scope="col" class="w-32 sm:w-1/5 px-6 py-3">Valor $</th>
+            <th scope="col" class="w-32 sm:w-1/5 px-6 py-3">P. Final $</th>
+            <th scope="col" class="w-48 px-6 py-3">Mecánico</th>
+            <th scope="col" class="w-24 sm:w-1/6 px-6 py-3">Acción</th>
+          </tr>
+        </thead>
+        <tbody formArrayName="labours">
+          @for (item of labourArray()?.controls; let i = $index;track item) {
+          <tr [formGroupName]="i" class="bg-white dark:bg-gray-800">
+            <th
+              scope="row"
+              class="px-6 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+            >
+              <!-- Modo de selección (predeterminado) -->
+              @if (!isCustomMode(i)) {
+              <div class="flex items-center">
+                <select
+                  id="type"
+                  formControlName="name"
+                  (change)="changePrice(i, $event)"
+                  [disabled]="readonly()"
+                  class="block w-72 sm:w-[90%] md:min-w-[250px] lg:min-w-[300px] rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="">Seleccione una actividad</option>
+                  @for (item of labour; track $index) {
+                  <option
+                    [value]="item.name"
+                    [disabled]="isOptionSelected(item.name, i)"
+                  >
+                    {{ item.name }}
+                  </option>
+                  }
+                </select>
+                <button
+                  type="button"
+                  (click)="toggleCustomMode(i, true)"
+                  [disabled]="readonly()"
+                  [class.opacity-50]="readonly()"
+                  [class.cursor-not-allowed]="readonly()"
+                  class="cursor-pointer ml-2 pr-4 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex-shrink-0"
+                  title="Crear actividad personalizada"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M12 20h9"></path>
+                    <path
+                      d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+              }
+
+              <!-- Modo personalizado -->
+              @if (isCustomMode(i)) {
+              <div class="flex items-center">
+                <input
+                  type="text"
+                  formControlName="name"
+                  [readOnly]="readonly()"
+                  placeholder="Ingrese nombre de actividad"
+                  class="block w-72 sm:w-[90%] md:min-w-[250px] lg:min-w-[300px] rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                />
+                <button
+                  type="button"
+                  (click)="toggleCustomMode(i, false)"
+                  [disabled]="readonly()"
+                  [class.opacity-50]="readonly()"
+                  [class.cursor-not-allowed]="readonly()"
+                  class="ml-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex-shrink-0"
+                  title="Volver a selección de lista"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                    ></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                  </svg>
+                </button>
+              </div>
+              }
+            </th>
+            <td class="px-6 py-2">
+              <input
+                type="text"
+                formControlName="cost"
+                [readOnly]="readonly()"
+                class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              />
+              <div class="absolute">
+                @if(labourArray()?.at(i)?.get('cost')?.hasError('required')&&(labourArray()?.at(i)?.get('cost')?.touched
+                ||labourArray()?.at(i)?.get('cost')?.dirty )){
+                <app-tool-tip
+                  [message]="'Debe ingresar el costo'"
+                ></app-tool-tip>
+                }
+                @if(labourArray()?.at(i)?.get('cost')?.hasError('invalidNumber')){
+                <app-tool-tip
+                  [message]="'Solo se permite numeros positivos.'"
+                ></app-tool-tip>
+                }
+              </div>
+            </td>
+            <td class="px-6 py-2">
+              <input
+                type="text"
+                readonly
+                formControlName="totalIn"
+                class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              />
+            </td>
+            <td class="px-6 py-2">
+              <input
+                #mecInput
+                type="text"
+                [(ngModel)]="labourMechanicTerms[i]"
+                [ngModelOptions]="{ standalone: true }"
+                (input)="onLabourMechanicInput(i); updateDropdownPosition(i, mecInput)"
+                (focus)="updateDropdownPosition(i, mecInput)"
+                (blur)="hideLabourMechanicDrop(i)"
+                [disabled]="readonly()"
+                placeholder="Buscar mecánico..."
+                class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              />
+              <div
+                *ngIf="showLabourMechanicDrop[i] && labourMechanicResults[i]?.length"
+                class="fixed z-[9999] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl overflow-hidden"
+                [style.top.px]="dropdownPositions[i]?.top"
+                [style.bottom.px]="dropdownPositions[i]?.bottom"
+                [style.left.px]="dropdownPositions[i]?.left"
+                [style.width.px]="dropdownPositions[i]?.width"
+              >
+                <div class="overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700"
+                  [style.max-height.px]="dropdownPositions[i]?.maxHeight">
+                  <div
+                    *ngFor="let m of labourMechanicResults[i]"
+                    (mousedown)="selectLabourMechanic(i, m)"
+                    class="flex items-center gap-2 px-3 py-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer text-sm text-gray-800 dark:text-gray-100"
+                  >
+                    <span class="font-medium">{{ m.fullName }}</span>
+                    <span *ngIf="m.position" class="text-xs text-gray-400 ml-auto">{{ m.position }}</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-2.5">
+              <button
+                type="button"
+                (click)="delete(item)"
+                [disabled]="readonly()"
+                [class.opacity-50]="readonly()"
+                [class.cursor-not-allowed]="readonly()"
+                class="text-white cursor-pointer font-medium rounded-lg text-sm p-2 hover:bg-red-300"
+              >
+                <svg
+                  class="w-6 h-6 text-gray-800 dark:text-white"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="m15 9-6 6m0-6 6 6m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                  />
+                </svg>
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  @if(!readonly()){
+  <div class="flex justify-end mt-4 mb-4">
+    <button
+      type="button"
+      (click)="add()"
+      class="cursor-pointer flex items-center text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-700 dark:hover:bg-blue-800 dark:focus:ring-blue-900"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="mr-2"
+      >
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M12 8v8"></path>
+        <path d="M8 12h8"></path>
+      </svg>
+      Agregar Actividad
+    </button>
+  </div>
+  }
+</form>

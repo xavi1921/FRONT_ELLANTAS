@@ -1,0 +1,42 @@
+<a
+  class="group flex cursor-pointer items-center rounded-lg p-2 text-base font-normal text-gray-900
+   hover:bg-gray-200 dark:text-white dark:hover:bg-gray-700"
+  [routerLink]="link"
+  routerLinkActive="bg-gray-200 dark:bg-gray-700"
+  [routerLinkActiveOptions]="{ exact: true }"
+  (click)="toggleExpand()"
+>
+  <span
+    class="flex-shrink-0"
+    [innerHTML]="icon! | sanitizeHtml"
+    *ngIf="!!icon"
+  ></span>
+  <span
+    class="flex-1 whitespace-nowrap"
+    [class.ml-3]="!!icon"
+    *ngIf="(sidebarService.collapsed | async) === false"
+  >
+    <ng-content></ng-content>
+  </span>
+  @if((sidebarService.collapsed | async) ===false && label){
+  <app-badge>
+    {{ label }}
+  </app-badge>
+
+  }
+</a>
+
+@if(children && children.length>0){ 
+  @if(expanded){
+   <ul class="py-2 space-y-2">
+     @for (subModules of children; track $index) {
+      <li>
+        <a *hasRole="subModules.roles"
+        href="{{subModules.href}}"
+        class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">
+        {{ subModules.title }}</a>
+       </li>
+    } 
+   </ul>
+ } 
+}

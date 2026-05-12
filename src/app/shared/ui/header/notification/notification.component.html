@@ -1,0 +1,105 @@
+<div class="relative">
+  <button
+    (click)="toggleDropdown()"
+    class="relative cursor-pointer rounded-lg p-2.5 text-sm text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
+    type="button"
+  >
+    <svg
+      class="w-5 h-5"
+      aria-hidden="true"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      viewBox="0 0 14 20"
+    >
+      <path
+        d="M12.133 10.632v-1.8A5.406 5.406 0 0 0 7.979 3.57.946.946 0 0 0 8 3.464V1.1a1 1 0 0 0-2 0v2.364a.946.946 0 0 0 .021.106 5.406 5.406 0 0 0-4.154 5.262v1.8C1.867 13.018 0 13.614 0 14.807 0 15.4 0 16 .538 16h12.924C14 16 14 15.4 14 14.807c0-1.193-1.867-1.789-1.867-4.175ZM3.823 17a3.453 3.453 0 0 0 6.354 0H3.823Z"
+      />
+    </svg>
+    @if(count>0){
+    <div
+      class="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white dark:border-gray-900"
+    >
+      {{ count }}
+    </div>
+    }
+  </button>
+  @if(isDropdownOpen){
+  <div
+    class="absolute max-h-[550px] overflow-y-auto custom-scrollbar right-0 z-50 my-4 w-74 sm:w-96 md:96 bg-white divide-y divide-gray-100 rounded-lg shadow-sm dark:bg-gray-800 dark:divide-gray-700"
+  >
+    <div
+      class="px-4 py-2 font-medium text-center text-gray-700 rounded-t-lg bg-gray-50 dark:bg-gray-800 dark:text-white"
+    >
+      Notificaciones
+    </div>
+    <div class="divide-y divide-gray-100 dark:divide-gray-700">
+      @for (noti of notifications; track $index) {
+      <a class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700">
+        <div class="w-full ps-3">
+          <div class="text-gray-500 text-sm mb-1.5 dark:text-gray-400">
+            {{ noti.message }}
+          </div>
+          <div class="text-xs text-blue-600 dark:text-blue-500">
+            {{ formatDateTime(noti.createdAt) }}
+          </div>
+        </div>
+
+        <!-- Botón para eliminar la notificación -->
+        <button
+          class="ml-2 text-gray-800 dark:text-white cursor-pointer"
+          (click)="delete(noti)"
+        >
+          <svg
+            class="w-6 h-6 text-gray-800 dark:text-white"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"
+            />
+          </svg>
+        </button>
+      </a>
+      } @if (notifications.length===0) {
+      <div class="w-full">
+        <div
+          class="py-2 text-center text-gray-500 text-sm mb-1.5 dark:text-gray-400"
+        >
+          Sin Notificaciones
+        </div>
+      </div>
+      }
+    </div>
+    @if(notifications.length>0){
+    <a
+      (click)="markNoti()"
+      class="cursor-pointer block py-2 text-sm font-medium text-center text-gray-900 rounded-b-lg bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white"
+    >
+      <div class="inline-flex items-center">
+        <svg
+          class="w-4 h-4 me-2 text-gray-500 dark:text-gray-400"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="currentColor"
+          viewBox="0 0 20 14"
+        >
+          <path
+            d="M10 0C4.612 0 0 5.336 0 7c0 1.742 3.546 7 10 7 6.454 0 10-5.258 10-7 0-1.664-4.612-7-10-7Zm0 10a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"
+          />
+        </svg>
+        Marcar como leidas
+      </div>
+    </a>
+    }
+  </div>
+
+  }
+</div>

@@ -1,0 +1,299 @@
+@if (isOpen()) {
+  <!-- Modal backdrop con overlay semi-transparente -->
+  <div
+    class="fixed inset-0 z-40 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-gray-900/50 dark:bg-gray-900/80"
+    id="updateUserModal"
+  >
+    <div
+      class="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:max-w-lg md:max-w-xl"
+    >
+      <!-- Encabezado del modal -->
+      <div
+        class="mb-2 flex items-start justify-between pb-3 dark:border-gray-700"
+      >
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+          {{ owner() ? "Editar Cliente" : "Crear Nuevo Cliente" }}
+        </h3>
+        <button
+          type="button"
+          (click)="onClose()"
+          class="cursor-pointer ml-auto inline-flex items-center rounded-lg bg-transparent p-1.5 text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white"
+        >
+          <svg
+            class="h-5 w-5"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+              clip-rule="evenodd"
+            ></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="max-h-[calc(95vh-8rem)] overflow-y-auto px-1">
+        <form [formGroup]="ownerForm" (ngSubmit)="onSubmit()">
+          <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label
+                for="type"
+                class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >
+                Tipo de Cliente
+              </label>
+              <select
+                id="type"
+                formControlName="type_sus"
+                (change)="onTypeChange()"
+                class="cursor-pointer block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              >
+                @for (type of types; track $index) {
+                  <option [value]="type.name">{{ type.name }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label
+                for="identification"
+                class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >
+                N° Identificación
+              </label>
+              <div class="flex gap-2">
+                <input
+                  formControlName="identification_number"
+                  type="text"
+                  id="identification"
+                  class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                />
+                <button
+                  type="button"
+                  (click)="lookupIdentity()"
+                  [disabled]="
+                    load || ownerForm.get('identification_number')?.invalid
+                  "
+                  class="cursor-pointer p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 disabled:opacity-50"
+                  title="Consultar identidad"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </button>
+              </div>
+              @if (
+                ownerForm.get("identification_number")?.hasError("required") &&
+                (ownerForm.get("identification_number")?.touched ||
+                  ownerForm.get("identification_number")?.dirty)
+              ) {
+                <app-tool-tip
+                  [message]="'Ingrese su numero de identificación'"
+                ></app-tool-tip>
+              }
+              @if (
+                ownerForm.get("type_sus")?.value != "Natural" &&
+                (ownerForm
+                  .get("identification_number")
+                  ?.hasError("minlength") ||
+                  ownerForm.get("identification_number")?.hasError("maxlength"))
+              ) {
+                <app-tool-tip
+                  [message]="'El RUC debe tener 13 dígitos'"
+                ></app-tool-tip>
+              }
+              @if (
+                ownerForm.get("type_sus")?.value === "Natural" &&
+                (ownerForm
+                  .get("identification_number")
+                  ?.hasError("minlength") ||
+                  ownerForm.get("identification_number")?.hasError("maxlength"))
+              ) {
+                <app-tool-tip
+                  [message]="' La cédula debe tener 10 dígitos'"
+                ></app-tool-tip>
+              }
+              @if (
+                ownerForm.get("identification_number")?.hasError("invalidRuc")
+              ) {
+                <app-tool-tip [message]="' RUC inválido'"></app-tool-tip>
+              }
+              @if (
+                ownerForm.get("identification_number")?.hasError("rucNotFound")
+              ) {
+                <app-tool-tip
+                  [message]="' El RUC no existe o no es válido'"
+                ></app-tool-tip>
+              }
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >Nombre Completo / Razon Social</label
+            >
+            <input
+              formControlName="razon_social"
+              type="text"
+              id="address"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            />
+            @if (
+              ownerForm.get("razon_social")?.hasError("required") &&
+              (ownerForm.get("razon_social")?.touched ||
+                ownerForm.get("razon_social")?.dirty)
+            ) {
+              <app-tool-tip
+                [message]="'Debe ingresar la Razon Social'"
+              ></app-tool-tip>
+            }
+            @if (
+              ownerForm.get("razon_social")?.hasError("invalidName") &&
+              (ownerForm.get("razon_social")?.touched ||
+                ownerForm.get("razon_social")?.dirty)
+            ) {
+              <app-tool-tip
+                [message]="
+                  'No se permiten caracteres especiales (ej. guiones, símbolos, etc.)'
+                "
+              ></app-tool-tip>
+            }
+          </div>
+
+          <!-- Email -->
+          <div class="mb-3">
+            <label
+              for="address"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >Dirección</label
+            >
+            <input
+              formControlName="address"
+              type="text"
+              id="address"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            />
+            @if (
+              ownerForm.get("address")?.hasError("required") &&
+              (ownerForm.get("address")?.touched ||
+                ownerForm.get("address")?.dirty)
+            ) {
+              <app-tool-tip [message]="'Ingrese su dirección'"></app-tool-tip>
+            }
+          </div>
+
+          <!--  Telefono -->
+
+          <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label
+                for="cell_phone"
+                class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+                >Telefono 1</label
+              >
+              <input
+                formControlName="cell_phone"
+                type="text"
+                id="cell_phone"
+                class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              />
+              @if (
+                ownerForm.get("cell_phone")?.hasError("required") &&
+                (ownerForm.get("cell_phone")?.touched ||
+                  ownerForm.get("cell_phone")?.dirty)
+              ) {
+                <app-tool-tip [message]="'Ingrese su telefono'"></app-tool-tip>
+              }
+              @if (ownerForm.get("cell_phone")?.hasError("invalidNumber")) {
+                <app-tool-tip [message]="'Ingrese solo numeros'"></app-tool-tip>
+              }
+              @if (ownerForm.get("cell_phone")?.hasError("invalidLength")) {
+                <app-tool-tip
+                  [message]="
+                    'El número debe tener 9 (convencional) o 10 (celular) dígitos'
+                  "
+                ></app-tool-tip>
+              }
+            </div>
+            <div>
+              <label
+                class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+                >Telefono 2</label
+              >
+              <input
+                formControlName="cell_phone_2"
+                type="text"
+                class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              />
+              @if (ownerForm.get("cell_phone_2")?.hasError("invalidLength")) {
+                <app-tool-tip
+                  [message]="
+                    'El número debe tener 9 (convencional) o 10 (celular) dígitos'
+                  "
+                ></app-tool-tip>
+              }
+            </div>
+          </div>
+          <div class="mb-3">
+            <label
+              for="email"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >Email</label
+            >
+            <input
+              formControlName="email"
+              type="email"
+              id="email"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            />
+            @if (
+              ownerForm.get("email")?.hasError("required") &&
+              (ownerForm.get("email")?.touched || ownerForm.get("email")?.dirty)
+            ) {
+              <app-tool-tip
+                [message]="'Ingrese su correo electrónico'"
+              ></app-tool-tip>
+            }
+            @if (ownerForm.get("email")?.hasError("invalidEmail")) {
+              <app-tool-tip
+                [message]="'Ingrese un correo electrónico válido'"
+              ></app-tool-tip>
+            }
+          </div>
+
+          <div class="mt-3 flex items-center justify-start gap-3">
+            <button
+              type="submit"
+              [disabled]="!ownerForm.valid"
+              class="disabled:cursor-default cursor-pointer rounded-lg bg-blue-700 px-4 py-2 text-xs font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            >
+              {{ owner() ? "Actualizar" : "Guardar" }}
+            </button>
+            @if (!owner()) {
+              <button
+                type="button"
+                (click)="clearTabs()"
+                class="cursor-pointer rounded-lg bg-gray-500 px-4 py-2 text-xs font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
+              >
+                🧹 Limpiar
+              </button>
+            }
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
+<app-spinner [load]="load"></app-spinner>

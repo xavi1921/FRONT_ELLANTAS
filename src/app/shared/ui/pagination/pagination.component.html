@@ -1,0 +1,65 @@
+<div
+  class="flex flex-col sm:flex-row items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg shadow"
+>
+  <div class="flex items-center mb-4 sm:mb-0">
+    <label
+      for="rows-select"
+      class="mr-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+    >
+      Mostrar
+    </label>
+    <div class="relative" >
+      <select
+        id="rows-select"
+        class="bg-gray-50 border cursor-pointer border-gray-300
+         text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500
+          block w-full p-2.5 pr-8 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+        [(ngModel)]="pageEvent().pageSize"
+        (ngModelChange)="onPageSizeChange($event)"
+      >
+        @for (option of pageSizeOptions(); track $index) {
+        <option [value]="option" >{{ option }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="ml-2">
+      <label
+      for="rows-select"
+      class="mr-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+    >
+    {{ module() }}: {{ totalItems() }}
+    </label>
+    </div>
+  </div>
+
+  <!-- Page information -->
+  <div class="flex items-center mb-4 sm:mb-0 mx-4">
+    <span class="text-sm text-gray-700 dark:text-gray-300">
+      Pagina {{ pageEvent().pageIndex + 1 }} de {{ totalPages }}
+    </span>
+  </div>
+
+  <!-- Navigation buttons -->
+  <div class="flex space-x-2">
+    <button
+      type="button"
+      class="cursor-pointer disabled:bg-gray-300 disabled:cursor-default px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-blue-700
+       dark:bg-gray-800 dark:border-gray-600 dark:text-black dark:hover:bg-gray-700 dark:hover:text-white"
+      (click)="onPageChange(pageEvent().pageIndex - 1)"
+      [disabled]="pageEvent().pageIndex === 0"
+    >
+      Anterior
+    </button>
+    <button
+      type="button"
+      (click)="onPageChange(pageEvent().pageIndex + 1)"
+      [disabled]="pageEvent().pageIndex === totalPages - 1"
+      class="cursor-pointer disabled:bg-gray-300 disabled:cursor-default px-4 py-2 text-sm font-medium text-gray-700
+       bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-blue-700
+        dark:bg-gray-800 dark:border-gray-600  dark:text-black dark:hover:bg-gray-700 dark:hover:text-white"
+    >
+      Siguiente
+    </button>
+  </div>
+</div>

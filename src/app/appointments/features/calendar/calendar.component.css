@@ -1,0 +1,131 @@
+/* Estilos base para el calendario */
+:host ::ng-deep .fc {
+  --fc-border-color: #e2e8f0;
+  --fc-page-bg-color: #ffffff;
+  --fc-neutral-bg-color: #f8fafc;
+  --fc-list-event-hover-bg-color: #f1f5f9;
+  --fc-today-bg-color: rgba(33, 56, 204, 0.26);
+  --fc-event-bg-color: #3788d8;
+  --fc-event-border-color: #3788d8;
+  --fc-event-text-color: #ffffff;
+  --fc-button-bg-color: #3788d8;
+  --fc-button-border-color: #3788d8;
+  --fc-button-hover-bg-color: #2c6fc7;
+  --fc-button-hover-border-color: #2c6fc7;
+  --fc-button-active-bg-color: #1a56a0;
+  --fc-button-active-border-color: #1a56a0;
+  --fc-event-selected-overlay-color: rgba(0, 0, 0, 0.25);
+  --fc-more-link-bg-color: #d0d0d0;
+  --fc-more-link-text-color: inherit;
+  --fc-non-business-color: rgba(215, 215, 215, 0.3);
+  --fc-highlight-color: rgba(188, 232, 241, 0.3);
+  --fc-neutral-text-color: #808080;
+  --fc-neutral-bg-color: #f8fafc;
+  --fc-theme-standard-border-color: #ddd;
+}
+
+/* Estilos para el modo oscuro */
+:host-context(.dark) ::ng-deep .fc,
+:host ::ng-deep .dark .fc {
+  --fc-border-color: #374151;
+  --fc-page-bg-color: #1f2937;
+  --fc-neutral-bg-color: #111827;
+  --fc-list-event-hover-bg-color: #374151;
+  --fc-today-bg-color: rgba(100, 119, 241, 0.2);
+  --fc-event-bg-color: #3788d8;
+  --fc-event-border-color: #3788d8;
+  --fc-event-text-color: #ffffff;
+  --fc-button-bg-color: #4f46e5;
+  --fc-button-border-color: #4f46e5;
+  --fc-button-hover-bg-color: #4338ca;
+  --fc-button-hover-border-color: #4338ca;
+  --fc-button-active-bg-color: #3730a3;
+  --fc-button-active-border-color: #3730a3;
+  --fc-theme-standard-border-color: #374151;
+  --fc-neutral-text-color: #d1d5db;
+  --fc-neutral-bg-color: #1f2937;
+}
+
+/* Estilos específicos para elementos del calendario en modo oscuro */
+:host-context(.dark) ::ng-deep .fc,
+:host ::ng-deep .dark .fc {
+  color: #f3f4f6;
+}
+
+:host-context(.dark) ::ng-deep .fc-theme-standard .fc-scrollgrid,
+:host-context(.dark) ::ng-deep .fc-theme-standard td,
+:host-context(.dark) ::ng-deep .fc-theme-standard th,
+:host ::ng-deep .dark .fc-theme-standard .fc-scrollgrid,
+:host ::ng-deep .dark .fc-theme-standard td,
+:host ::ng-deep .dark .fc-theme-standard th {
+  border-color: #374151;
+}
+
+:host-context(.dark) ::ng-deep .fc .fc-col-header-cell-cushion,
+:host-context(.dark) ::ng-deep .fc .fc-daygrid-day-number,
+:host-context(.dark) ::ng-deep .fc .fc-list-day-text,
+:host-context(.dark) ::ng-deep .fc .fc-list-day-side-text,
+:host ::ng-deep .dark .fc .fc-col-header-cell-cushion,
+:host ::ng-deep .dark .fc .fc-daygrid-day-number,
+:host ::ng-deep .dark .fc .fc-list-day-text,
+:host ::ng-deep .dark .fc .fc-list-day-side-text {
+  color: #f3f4f6;
+}
+
+:host-context(.dark) ::ng-deep .fc-daygrid-day.fc-day-today,
+:host ::ng-deep .dark .fc-daygrid-day.fc-day-today {
+  background-color: rgba(100, 119, 241, 0.2);
+}
+
+:host-context(.dark) ::ng-deep .fc-list-empty,
+:host ::ng-deep .dark .fc-list-empty {
+  background-color: #1f2937;
+  color: #9ca3af;
+}
+
+:host-context(.dark) ::ng-deep .fc-list-table td,
+:host ::ng-deep .dark .fc-list-table td {
+  border-color: #374151;
+}
+
+:host-context(.dark) ::ng-deep .fc-list-day > th,
+:host ::ng-deep .dark .fc-list-day > th {
+  background-color: #111827;
+  color: #f3f4f6;
+}
+
+:host-context(.dark) ::ng-deep .fc-list-event:hover td,
+:host ::ng-deep .dark .fc-list-event:hover td {
+  background-color: #374151;
+}
+
+/* Asegurarse de que los eventos mantengan sus colores específicos */
+:host ::ng-deep .fc .fc-event {
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/*asegura que el texto de los eventos sea negro */
+:host ::ng-deep .fc-event-title,
+:host ::ng-deep .fc-event-time,
+:host ::ng-deep .fc-event-title-container,
+:host-context(.dark) ::ng-deep .fc-event-title,
+:host-context(.dark) ::ng-deep .fc-event-time,
+:host-context(.dark) ::ng-deep .fc-event-title-container,
+:host ::ng-deep .dark .fc-event-title,
+:host ::ng-deep .dark .fc-event-time,
+:host ::ng-deep .dark .fc-event-title-container {
+  color: #000000 !important;
+  font-weight: 500;
+}
+
+/* Asegura que el texto sea negro incluso cuando se selecciona un evento */
+:host ::ng-deep .fc-event.fc-event-selected .fc-event-title,
+:host ::ng-deep .fc-event.fc-event-selected .fc-event-time,
+:host-context(.dark) ::ng-deep .fc-event.fc-event-selected .fc-event-title,
+:host-context(.dark) ::ng-deep .fc-event.fc-event-selected .fc-event-time,
+:host ::ng-deep .dark .fc-event.fc-event-selected .fc-event-title,
+:host ::ng-deep .dark .fc-event.fc-event-selected .fc-event-time {
+  color: #000000 !important;
+}

@@ -1,0 +1,1475 @@
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="p-6 md:p-8 max-w-screen-3xl mx-auto">
+    <!-- Header Section -->
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center space-x-4">
+        <button
+          *ngIf="isEditMode && isFormDisabled"
+          (click)="onEdit()"
+          class="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition-colors cursor-pointer"
+        >
+          EDITAR
+        </button>
+
+        <button
+          *ngIf="!isFormDisabled"
+          (click)="onSubmit()"
+          [disabled]="orderForm.invalid || isSubmitting"
+          class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        >
+          {{
+            isSubmitting
+              ? "PROCESANDO..."
+              : isEditMode
+                ? "GUARDAR CAMBIOS"
+                : "CREAR ORDEN"
+          }}
+        </button>
+
+        <button
+          *ngIf="isEditMode"
+          (click)="onCreateNew()"
+          class="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors cursor-pointer"
+        >
+          CREAR NUEVA
+        </button>
+      </div>
+
+      <div class="text-right">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+          {{ orderForm.get("codigo")?.value }}
+        </h2>
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          Orden de Servicio
+        </p>
+      </div>
+    </div>
+    <!-- Banner Modo Lectura -->
+    <div
+      *ngIf="isFormDisabled && !isCancelled"
+      class="flex items-center gap-2 p-4 mb-4 rounded border border-yellow-300 bg-yellow-50 text-yellow-800 font-medium"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+      <span>
+        Estás en modo lectura. Debes pasar al modo edición para realizar cambios
+        en esta orden.</span
+      >
+    </div>
+    <!-- Banner Orden Cancelada -->
+    <div
+      *ngIf="isCancelled"
+      class="flex items-center gap-2 p-4 mb-4 rounded border border-red-300 bg-red-50 text-red-800 font-medium"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+      <span>
+        Esta orden ha sido <strong>cancelada</strong>. Solo puedes visualizar la
+        información en modo lectura.
+      </span>
+    </div>
+
+    <form [formGroup]="orderForm" (ngSubmit)="onSubmit()">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Order Information -->
+          <div
+            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6"
+          >
+            <h3
+              class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100"
+            >
+              INFORMACIÓN DE LA ORDEN
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  CLAVE VEHICULO
+                </label>
+                <input
+                  type="text"
+                  formControlName="key_veh"
+                  class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  KILOMETRAJE
+                </label>
+                <input
+                  type="text"
+                  formControlName="kmts"
+                  placeholder="Ej: 50,000 km"
+                  class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  FECHA DE INICIO *
+                </label>
+                <input
+                  type="date"
+                  [min]="minDate"
+                  formControlName="start_date"
+                  class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  HORA DE INICIO *
+                </label>
+                <input
+                  type="time"
+                  formControlName="start_time"
+                  class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div class="md:col-span-2">
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  SOLICITUD DEL CLIENTE (Requerimiento)
+                  <span
+                    class="ml-1 font-bold"
+                    [ngClass]="{
+                      'text-red-600 dark:text-red-400':
+                        orderForm.get('request')?.invalid &&
+                        orderForm.get('request')?.touched,
+                    }"
+                  >
+                    *
+                  </span>
+                </label>
+                <textarea
+                  formControlName="request"
+                  rows="3"
+                  placeholder="Describe la solicitud del cliente..."
+                  class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500 min-h-[50px] max-h-[100px]"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vehicle Information -->
+          <div
+            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6"
+          >
+            <h3
+              class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100"
+            >
+              INFORMACIÓN DEL VEHÍCULO
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="relative md:col-span-2">
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  BUSCAR VEHÍCULO (Placa o Propietario)
+                  <span
+                    class="ml-1 font-bold"
+                    [ngClass]="{
+                      'text-red-600 dark:text-red-400':
+                        orderForm.get('vehicleFilter')?.invalid &&
+                        orderForm.get('vehicleFilter')?.touched,
+                    }"
+                  >
+                    *
+                  </span>
+                </label>
+                <div class="relative">
+                  <input
+                    type="text"
+                    formControlName="vehicleFilter"
+                    (focus)="showVehicleSuggestions = true"
+                    (blur)="hideSuggestions()"
+                    placeholder="Buscar por placa o nombre del propietario..."
+                    class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+
+                  <!-- Botón limpiar -->
+                  <button
+                    type="button"
+                    *ngIf="selectedVehicle"
+                    (click)="clearVehicleSelection()"
+                    class="absolute right-2 top-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <!-- Vehicle Suggestions -->
+                <div
+                  *ngIf="showVehicleSuggestions"
+                  class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto"
+                >
+                  <div
+                    *ngIf="noVehiclesFound"
+                    class="p-3 text-sm text-gray-500 dark:text-gray-300"
+                  >
+                    No se encontraron vehículos.
+                  </div>
+                  <div
+                    *ngFor="let vehicle of filteredVehicles"
+                    (click)="selectVehicle(vehicle)"
+                    class="p-3 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0"
+                    [class.opacity-50]="vehicle.hasActiveOrder"
+                    [class.cursor-not-allowed]="vehicle.hasActiveOrder"
+                  >
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <div
+                          class="font-medium text-gray-900 dark:text-gray-100"
+                        >
+                          {{ vehicle.plate }}
+                        </div>
+                        <div class="text-sm text-gray-600 dark:text-gray-300">
+                          {{ vehicle.model }} - {{ vehicle.owner.fullName }}
+                        </div>
+                      </div>
+                      <div
+                        *ngIf="vehicle.hasActiveOrder"
+                        class="text-xs text-red-600 font-medium"
+                      >
+                        ORDEN ACTIVA
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  MODELO
+                </label>
+                <input
+                  type="text"
+                  formControlName="model_veh"
+                  readonly
+                  class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  PLACA
+                </label>
+                <input
+                  type="text"
+                  formControlName="plate"
+                  readonly
+                  class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  CONTACTO CLIENTE 1
+                </label>
+                <input
+                  type="text"
+                  formControlName="contact_client_1"
+                  readonly
+                  class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  CONTACTO CLIENTE 2
+                </label>
+                <input
+                  type="text"
+                  formControlName="contact_client_2"
+                  readonly
+                  class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Information -->
+          <div
+            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6"
+          >
+            <h3
+              class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100"
+            >
+              INFORMACIÓN ADICIONAL
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="md:col-span-2">
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  OBSERVACIONES
+                </label>
+                <textarea
+                  formControlName="observation"
+                  rows="3"
+                  placeholder="Observaciones adicionales..."
+                  class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500 h-[100px] min-h-[50px] max-h-[100px]"
+                ></textarea>
+              </div>
+
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  CLIENTE
+                </label>
+                <input
+                  type="text"
+                  readonly
+                  formControlName="client"
+                  class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  formControlName="client_contact"
+                  id="client_contact"
+                  class="h-4 w-4 text-teal-600 border-gray-300 dark:border-gray-600 rounded focus:ring-teal-500"
+                />
+                <label
+                  for="client_contact"
+                  class="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                >
+                  Cliente contactado
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="lg:col-span-1 space-y-6">
+          <!-- Status Management -->
+          <div
+            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6"
+          >
+            <h3
+              class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100"
+            >
+              ESTADOS
+            </h3>
+            <div class="space-y-2">
+              <div
+                *ngFor="let status of orderStatuses"
+                class="flex items-center"
+              >
+                <input
+                  type="checkbox"
+                  [id]="'status_' + status"
+                  [checked]="isStatusActive(status)"
+                  (change)="toggleStatus(status)"
+                  [disabled]="isFormDisabled"
+                  class="h-4 w-4 text-teal-600 border-gray-300 dark:border-gray-600 rounded focus:ring-teal-500"
+                />
+                <label
+                  [for]="'status_' + status"
+                  class="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                  [class.line-through]="
+                    status === 'Cancelada' && isStatusActive(status)
+                  "
+                >
+                  {{ status }}
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Totals Summary -->
+          <div
+            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6"
+          >
+            <h3
+              class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100"
+            >
+              RESUMEN DE SERVICIOS
+            </h3>
+            <div class="space-y-3">
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600 dark:text-gray-300"
+                  >Total Mano de Obra:</span
+                >
+                <span class="font-medium dark:text-gray-300"
+                  >${{
+                    orderForm.get("total_mo")?.value | number: "1.2-2"
+                  }}</span
+                >
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600 dark:text-gray-300"
+                  >Total Repuestos:</span
+                >
+                <span class="font-medium dark:text-gray-300"
+                  >${{
+                    orderForm.get("total_r")?.value | number: "1.2-2"
+                  }}</span
+                >
+              </div>
+              <div
+                class="flex justify-between border-t border-gray-200 dark:border-gray-600 pt-2"
+              >
+                <span class="text-sm text-gray-600 dark:text-gray-300"
+                  >Subtotal:</span
+                >
+                <span class="font-medium dark:text-gray-300"
+                  >${{
+                    orderForm.get("subtotal")?.value | number: "1.2-2"
+                  }}</span
+                >
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600 dark:text-gray-300"
+                  >Abono:</span
+                >
+                <div class="flex items-center space-x-2">
+                  <span class="text-sm dark:text-gray-300">$</span>
+                  <input
+                    type="number"
+                    formControlName="abono"
+                    min="0"
+                    step="0.01"
+                    class="w-20 p-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                  />
+                </div>
+              </div>
+              <div
+                class="flex justify-between border-t border-gray-200 dark:border-gray-600 pt-2 text-lg font-bold"
+              >
+                <span class="dark:text-gray-300">Total:</span>
+                <span class="text-teal-600"
+                  >${{ orderForm.get("total")?.value | number: "1.2-2" }}</span
+                >
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >MÉTODO DE PAGO</label
+              >
+              <select
+                formControlName="paymentM"
+                class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                <option value="">Seleccionar método</option>
+                <option
+                  *ngFor="let method of paymentMethods"
+                  [value]="method.value"
+                >
+                  {{ method.label }}
+                </option>
+              </select>
+              <div
+                *ngIf="orderForm.get('paymentM')?.value === 'tarjeta'"
+                class="mt-2 text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900 p-2 rounded"
+              >
+                <i class="fas fa-info-circle mr-1"></i>
+                Se aplica 10% adicional por pago con tarjeta en mano de obra y
+                repuestos
+              </div>
+            </div>
+          </div>
+
+          <!-- Annexes -->
+          <div
+            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6"
+          >
+            <h3
+              class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100"
+            >
+              ANEXOS
+            </h3>
+            <div class="space-y-4">
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  >CREADO POR</label
+                >
+                <input
+                  type="text"
+                  formControlName="createBy"
+                  readonly
+                  class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  >DELEGADO</label
+                >
+                <input
+                  type="text"
+                  readonly
+                  formControlName="delegate"
+                  class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  >IDENTIFICACIÓN</label
+                >
+                <input
+                  type="text"
+                  readonly
+                  formControlName="identification"
+                  class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div
+                class="mt-2 text-xs text-yellow-800 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-900 p-2 rounded flex items-center"
+              >
+                <i class="fas fa-info-circle mr-1"></i>
+                Estos campos se llenan automáticamente
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Services Tabs -->
+      <div class="mt-8">
+        <div
+          class="flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto bg-white dark:bg-gray-800 rounded-t-lg"
+        >
+          <button
+            class="px-6 py-3 text-sm font-medium border-b-2 whitespace-nowrap cursor-pointer"
+            type="button"
+            [ngClass]="{
+              'border-teal-600 text-teal-600 bg-teal-50 dark:bg-teal-900':
+                activeTab === 'labours' && !hasInvalidLabours(),
+              'border-red-600 text-red-600 bg-red-50 dark:bg-red-900':
+                hasInvalidLabours(),
+              'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600':
+                activeTab !== 'labours' && !hasInvalidLabours(),
+            }"
+            (click)="setActiveTab('labours')"
+          >
+            MANO DE OBRA
+          </button>
+          <button
+            class="px-6 py-3 text-sm font-medium border-b-2 whitespace-nowrap cursor-pointer"
+            type="button"
+            [ngClass]="{
+              'border-teal-600 text-teal-600 bg-teal-50 dark:bg-teal-900':
+                activeTab === 'spare_parts' && !hasInvalidSpareParts(),
+              'border-red-600 text-red-600 bg-red-50 dark:bg-red-900':
+                hasInvalidSpareParts(),
+              'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600':
+                activeTab !== 'spare_parts' && !hasInvalidSpareParts(),
+            }"
+            (click)="setActiveTab('spare_parts')"
+          >
+            REPUESTOS
+          </button>
+          <button
+            class="px-6 py-3 text-sm font-medium border-b-2 whitespace-nowrap cursor-pointer"
+            type="button"
+            [ngClass]="{
+              'border-teal-600 text-teal-600 bg-teal-50 dark:bg-teal-900':
+                activeTab === 'spare_parts_extra' &&
+                !hasInvalidSparePartsExtra(),
+              'border-red-600 text-red-600 bg-red-50 dark:bg-red-900':
+                hasInvalidSparePartsExtra(),
+              'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600':
+                activeTab !== 'spare_parts_extra' &&
+                !hasInvalidSparePartsExtra(),
+            }"
+            (click)="setActiveTab('spare_parts_extra')"
+          >
+            REPUESTOS EXTRAS
+          </button>
+          <!-- ── Mechanics tab button ─────────────────────────────────────── -->
+          <button
+            class="px-6 py-3 text-sm font-medium border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-2"
+            type="button"
+            [ngClass]="{
+              'border-teal-600 text-teal-600 bg-teal-50 dark:bg-teal-900':
+                activeTab === 'mechanics',
+              'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600':
+                activeTab !== 'mechanics',
+            }"
+            (click)="setActiveTab('mechanics')"
+          >
+            MECÁNICOS
+            <span
+              class="inline-flex items-center justify-center h-5 min-w-[1.25rem] px-1.5 rounded-full text-xs font-bold transition-colors text-white"
+              [ngClass]="{
+                'bg-teal-600': activeTab === 'mechanics',
+                'bg-teal-500': activeTab !== 'mechanics' && assignedMechanics.length > 0,
+                'bg-gray-400 dark:bg-gray-500': activeTab !== 'mechanics' && assignedMechanics.length === 0,
+              }"
+              >{{ assignedMechanics.length }}</span
+            >
+          </button>
+          <!-- ── History tab button ──────────────────────────────────────── -->
+          <button
+            class="px-6 py-3 text-sm font-medium border-b-2 whitespace-nowrap cursor-pointer"
+            type="button"
+            [ngClass]="{
+              'border-teal-600 text-teal-600 bg-teal-50 dark:bg-teal-900':
+                activeTab === 'history',
+              'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600':
+                activeTab !== 'history',
+            }"
+            (click)="setActiveTab('history')"
+          >
+            HISTORIAL
+          </button>
+          <!-- ──────────────────────────────────────────────────────────────── -->
+        </div>
+
+        <div
+          class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-b-lg"
+        >
+          <!-- Labours Tab -->
+          <div *ngIf="activeTab === 'labours'" class="p-6">
+            <div class="overflow-x-auto">
+              <table class="w-full border border-gray-200 dark:border-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-600"
+                    >
+                      Actividad *
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-600"
+                    >
+                      Costo *
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-600"
+                    >
+                      Mecánico
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-600"
+                    >
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody formArrayName="labours">
+                  <tr
+                    *ngFor="
+                      let labour of labours.controls;
+                      let i = index;
+                      let isLast = last
+                    "
+                    [formGroupName]="i"
+                    class="border-b border-gray-300 dark:border-gray-600"
+                  >
+                    <td class="px-4 py-3">
+                      <input
+                        type="text"
+                        formControlName="name"
+                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        placeholder="Ingresar actividad..."
+                      />
+                    </td>
+                    <td class="px-4 py-3">
+                      <input
+                        type="number"
+                        formControlName="cost"
+                        min="0"
+                        step="0.01"
+                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        placeholder="0.00"
+                        (blur)="formatDecimal('labours', i, 'cost')"
+                      />
+                    </td>
+                    <td class="px-3 py-2">
+                      <button
+                        #popoverTrigger
+                        type="button"
+                        (click)="openLabourPopover(i, popoverTrigger)"
+                        class="w-full flex flex-wrap items-center gap-1 min-h-[34px] px-2 py-1.5 rounded-lg border transition-colors cursor-pointer text-left"
+                        [ngClass]="{
+                          'border-teal-400 dark:border-teal-500 ring-1 ring-teal-300 dark:ring-teal-700 bg-white dark:bg-gray-800': activeLabourPopover === i,
+                          'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 hover:border-teal-300 dark:hover:border-teal-600': activeLabourPopover !== i
+                        }"
+                      >
+                        <span
+                          *ngIf="getLabourMechanicsArray(i).length === 0"
+                          class="text-xs text-gray-400 dark:text-gray-500"
+                        >+ Mecánico</span>
+                        <span
+                          *ngFor="let mc of getLabourMechanicsArray(i).controls"
+                          class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 dark:bg-teal-900/50 text-teal-800 dark:text-teal-200"
+                        >
+                          {{ getMechanicInitials(mc.get('employeeName')?.value || '') }}·${{ mc.get('amount')?.value | number:'1.0-2' }}
+                        </span>
+                        <span
+                          *ngIf="getLabourMechanicsArray(i).length > 0 && getLabourRemaining(i) > 0 && !isFormDisabled"
+                          class="inline-flex items-center justify-center w-4 h-4 rounded-full text-xs font-bold text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-600 leading-none"
+                        >+</span>
+                      </button>
+                    </td>
+                    <td class="px-4 py-3">
+                      <div class="flex items-center space-x-2">
+                        <button
+                          type="button"
+                          (click)="removeLabour(i, labour)"
+                          [disabled]="isFormDisabled"
+                          class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 dark:hover:bg-red-900 rounded disabled:text-gray-400 cursor-pointer"
+                        >
+                          <svg
+                            class="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            ></path>
+                          </svg>
+                        </button>
+                        <button
+                          *ngIf="isLast"
+                          type="button"
+                          (click)="addLabour()"
+                          [disabled]="isFormDisabled"
+                          class="px-3 py-1 text-sm text-teal-600 hover:text-teal-800 hover:bg-teal-50 dark:hover:bg-teal-900 rounded border border-teal-300 dark:border-teal-700 cursor-pointer"
+                        >
+                          + Agregar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Spare Parts Tab -->
+          <div *ngIf="activeTab === 'spare_parts'" class="p-6">
+            <div class="overflow-x-auto">
+              <table class="w-full border border-gray-200 dark:border-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-600"
+                    >
+                      Repuesto *
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-600"
+                    >
+                      Cantidad *
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-600"
+                    >
+                      Precio Venta *
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-600"
+                    >
+                      Subtotal
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-600"
+                    >
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody formArrayName="spare_parts">
+                  <tr
+                    *ngFor="
+                      let part of spare_parts.controls;
+                      let i = index;
+                      let isLast = last
+                    "
+                    [formGroupName]="i"
+                    class="border-b border-gray-300 dark:border-gray-600"
+                  >
+                    <td class="px-4 py-3 relative">
+                      <input
+                        type="text"
+                        formControlName="product"
+                        (input)="filterSpareParts($event, 'spare_parts', i)"
+                        placeholder="Buscar repuesto..."
+                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      />
+                    </td>
+                    <td class="px-4 py-3">
+                      <input
+                        type="number"
+                        formControlName="amount"
+                        min="1"
+                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      />
+                    </td>
+                    <td class="px-4 py-3">
+                      <input
+                        type="number"
+                        formControlName="sale_price"
+                        min="0"
+                        step="0.01"
+                        (blur)="formatDecimal('spare_parts', i, 'sale_price')"
+                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      />
+                    </td>
+                    <td class="px-4 py-3">
+                      <span
+                        class="text-sm font-medium text-gray-900 dark:text-gray-100"
+                      >
+                        ${{
+                          (part.get("amount")?.value || 0) *
+                            (part.get("sale_price")?.value || 0)
+                            | number: "1.2-2"
+                        }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <div class="flex items-center space-x-2">
+                        <button
+                          type="button"
+                          (click)="removeSparePart(i, part)"
+                          [disabled]="isFormDisabled"
+                          class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 dark:hover:bg-red-900 rounded disabled:text-gray-400 cursor-pointer"
+                        >
+                          <svg
+                            class="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            ></path>
+                          </svg>
+                        </button>
+                        <button
+                          *ngIf="isLast"
+                          type="button"
+                          (click)="addSparePart()"
+                          [disabled]="isFormDisabled"
+                          class="px-3 py-1 text-sm text-teal-600 hover:text-teal-800 hover:bg-teal-50 dark:hover:bg-teal-900 rounded border border-teal-300 dark:border-teal-700 cursor-pointer"
+                        >
+                          + Agregar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Extra Spare Parts Tab -->
+          <div *ngIf="activeTab === 'spare_parts_extra'" class="p-6">
+            <div class="overflow-x-auto">
+              <table class="w-full border border-gray-200 dark:border-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-600"
+                    >
+                      Repuesto Extra *
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-600"
+                    >
+                      Cantidad *
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-600"
+                    >
+                      Precio Venta *
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-600"
+                    ></th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-600"
+                    >
+                      Subtotal
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase border-b border-gray-300 dark:border-gray-600"
+                    >
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody formArrayName="spare_parts_extra">
+                  <tr
+                    *ngFor="
+                      let part of spare_parts_extra.controls;
+                      let i = index;
+                      let isLast = last
+                    "
+                    [formGroupName]="i"
+                    class="border-b border-gray-300 dark:border-gray-600"
+                  >
+                    <td class="px-4 py-3 relative">
+                      <input
+                        type="text"
+                        formControlName="product"
+                        placeholder="Ingresa repuesto extra..."
+                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      />
+                    </td>
+                    <td class="px-4 py-3">
+                      <input
+                        type="number"
+                        formControlName="amount"
+                        min="1"
+                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      />
+                    </td>
+                    <td class="px-4 py-3">
+                      <input
+                        type="number"
+                        formControlName="sale_price"
+                        min="0"
+                        step="0.01"
+                        (blur)="
+                          formatDecimal('spare_parts_extra', i, 'sale_price')
+                        "
+                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      />
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                      <button
+                        type="button"
+                        (click)="applyIncreaseExtra(i)"
+                        [ngClass]="{
+                          'bg-teal-600 text-white':
+                            part.get('applyIncrease')?.value,
+                          'bg-teal-50 text-teal-600 dark:bg-gray-800 dark:text-teal-400':
+                            !part.get('applyIncrease')?.value,
+                        }"
+                        class="px-2 py-1 text-sm rounded border border-teal-300 dark:border-teal-700 hover:bg-teal-700 hover:text-white dark:hover:bg-teal-800 transition-colors duration-200 cursor-pointer"
+                      >
+                        +10%
+                      </button>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span
+                        class="text-sm font-medium text-gray-900 dark:text-gray-100"
+                      >
+                        <ng-container *ngIf="!part.get('applyIncrease')?.value">
+                          ${{
+                            (part.get("amount")?.value || 0) *
+                              (part.get("sale_price")?.value || 0)
+                              | number: "1.2-2"
+                          }}
+                        </ng-container>
+                        <ng-container *ngIf="part.get('applyIncrease')?.value">
+                          ${{
+                            (part.get("amount")?.value || 0) *
+                              (part.get("sale_price")?.value || 0) *
+                              1.1 | number: "1.2-2"
+                          }}
+                          <span
+                            class="text-xs text-green-500 dark:text-green-400 block"
+                            >+10%</span
+                          >
+                        </ng-container>
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <div class="flex items-center space-x-2">
+                        <button
+                          type="button"
+                          (click)="removeSparePartExtra(i, part)"
+                          [disabled]="isFormDisabled"
+                          class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 dark:hover:bg-red-900 rounded disabled:text-gray-400 cursor-pointer"
+                        >
+                          <svg
+                            class="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            ></path>
+                          </svg>
+                        </button>
+                        <button
+                          *ngIf="isLast"
+                          type="button"
+                          (click)="addSparePartExtra()"
+                          [disabled]="isFormDisabled"
+                          class="px-3 py-1 text-sm text-teal-600 hover:text-teal-800 hover:bg-teal-50 dark:hover:bg-teal-900 rounded border border-teal-300 dark:border-teal-700 cursor-pointer"
+                        >
+                          + Agregar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <!-- ── Mechanics Tab Panel ────────────────────────────────────────── -->
+          <div *ngIf="activeTab === 'mechanics'" class="p-6">
+            <!-- Header row: title + search -->
+            <div
+              class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6"
+            >
+              <div>
+                <h4
+                  class="text-base font-semibold text-gray-900 dark:text-gray-100"
+                >
+                  Mecánicos asignados
+                </h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                  {{
+                    assignedMechanics.length === 0
+                      ? "Ningún mecánico asignado a esta orden"
+                      : assignedMechanics.length +
+                        " mecánico" +
+                        (assignedMechanics.length !== 1 ? "s" : "") +
+                        " asignado" +
+                        (assignedMechanics.length !== 1 ? "s" : "")
+                  }}
+                </p>
+              </div>
+
+              <!-- Search (only in edit mode) -->
+              <div *ngIf="!isFormDisabled" class="relative w-full sm:w-72">
+                <div
+                  class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                >
+                  <svg
+                    class="h-4 w-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+                <input
+                  id="mechanic-search"
+                  type="text"
+                  [(ngModel)]="mechanicSearchTerm"
+                  [ngModelOptions]="{ standalone: true }"
+                  (input)="onMechanicSearchInput()"
+                  (blur)="hideMechanicDropdown()"
+                  placeholder="Buscar y agregar mecánico..."
+                  class="w-full pl-9 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder-gray-400"
+                />
+                <div
+                  *ngIf="isLoadingMechanics"
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  <div
+                    class="animate-spin h-4 w-4 border-2 border-teal-500 border-t-transparent rounded-full"
+                  ></div>
+                </div>
+
+                <!-- Dropdown results -->
+                <div
+                  *ngIf="
+                    showMechanicDropdown && mechanicSearchResults.length > 0
+                  "
+                  class="absolute z-20 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-xl overflow-hidden"
+                >
+                  <div
+                    class="px-3 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-100 dark:border-gray-600"
+                  >
+                    <p
+                      class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide"
+                    >
+                      Resultados
+                    </p>
+                  </div>
+                  <div
+                    class="max-h-52 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700"
+                  >
+                    <div
+                      *ngFor="let mechanic of mechanicSearchResults"
+                      (mousedown)="addMechanic(mechanic)"
+                      class="flex items-center space-x-3 px-4 py-3 hover:bg-teal-50 dark:hover:bg-teal-900/30 cursor-pointer transition-colors"
+                    >
+                      <div
+                        class="flex-shrink-0 h-9 w-9 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white text-xs font-bold shadow-sm"
+                      >
+                        {{ getMechanicInitials(mechanic.fullName) }}
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p
+                          class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate"
+                        >
+                          {{ mechanic.fullName }}
+                        </p>
+                        <p
+                          *ngIf="mechanic.speciality || mechanic.role"
+                          class="text-xs text-gray-500 dark:text-gray-400"
+                        >
+                          {{ mechanic.speciality || mechanic.role }}
+                        </p>
+                      </div>
+                      <span
+                        class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300"
+                      >
+                        + Agregar
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty state -->
+            <div
+              *ngIf="assignedMechanics.length === 0"
+              class="flex flex-col items-center justify-center py-16 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-600"
+            >
+              <div
+                class="h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-4"
+              >
+                <svg
+                  class="w-8 h-8 text-gray-400 dark:text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+              </div>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Sin mecánicos asignados
+              </p>
+              <p
+                *ngIf="!isFormDisabled"
+                class="text-xs text-gray-400 dark:text-gray-500 mt-1"
+              >
+                Usa el buscador de arriba para agregar mecánicos
+              </p>
+              <p
+                *ngIf="isFormDisabled"
+                class="text-xs text-gray-400 dark:text-gray-500 mt-1"
+              >
+                Activa el modo edición para asignar mecánicos
+              </p>
+            </div>
+
+            <!-- Mechanics cards grid -->
+            <div
+              *ngIf="assignedMechanics.length > 0"
+              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+            >
+              <div
+                *ngFor="let mechanic of assignedMechanics; let i = index"
+                class="relative group flex flex-col items-center text-center p-5 rounded-2xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-teal-300 dark:hover:border-teal-600 hover:shadow-md transition-all duration-200"
+              >
+                <!-- Position badge -->
+                <span
+                  class="absolute top-3 left-3 inline-flex items-center justify-center h-5 w-5 rounded-full bg-gray-100 dark:bg-gray-700 text-xs font-medium text-gray-500 dark:text-gray-400"
+                >
+                  {{ i + 1 }}
+                </span>
+
+                <!-- Remove button (edit mode, visible on hover) -->
+                <button
+                  *ngIf="!isFormDisabled"
+                  type="button"
+                  (click)="removeMechanic(mechanic._id)"
+                  title="Quitar mecánico"
+                  class="absolute top-2 right-2 p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                >
+                  <svg
+                    class="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+
+                <!-- Avatar -->
+                <div
+                  class="h-14 w-14 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 dark:from-teal-500 dark:to-teal-700 flex items-center justify-center text-white text-lg font-bold shadow-md mb-3 ring-2 ring-white dark:ring-gray-800"
+                >
+                  {{ getMechanicInitials(mechanic.fullName) }}
+                </div>
+
+                <!-- Name -->
+                <p
+                  class="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-snug mb-1"
+                >
+                  {{ mechanic.fullName }}
+                </p>
+
+                <!-- Role / speciality chip -->
+                <span
+                  *ngIf="mechanic.speciality || mechanic.role"
+                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-teal-50 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300"
+                >
+                  {{ mechanic.speciality || mechanic.role }}
+                </span>
+                <span
+                  *ngIf="!mechanic.speciality && !mechanic.role"
+                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+                >
+                  Mecánico
+                </span>
+              </div>
+            </div>
+          </div>
+          <!-- ── History Tab Panel ──────────────────────────────────────── -->
+          <div *ngIf="activeTab === 'history'" class="p-6">
+            <app-tab-log [orderId]="orderId"></app-tab-log>
+          </div>
+          <!-- ─────────────────────────────────────────────────────────────── -->
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Loading indicator -->
+<div
+  *ngIf="isLoading"
+  class="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50"
+>
+  <div class="bg-white p-6 rounded-lg shadow-lg">
+    <div
+      class="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto"
+    ></div>
+    <p class="mt-2 text-gray-600">Cargando...</p>
+  </div>
+</div>
+<!-- ── Backdrop del popover de mecánicos ──────────────────────────────────── -->
+<div
+  *ngIf="activeLabourPopover !== null"
+  class="fixed inset-0 z-[9998]"
+  (click)="closeLabourPopover()"
+></div>
+
+<!-- ── Popover de mecánicos por actividad ─────────────────────────────────── -->
+<div
+  *ngIf="activeLabourPopover !== null"
+  class="fixed z-[9999] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl overflow-hidden"
+  [style.top.px]="labourPopoverPos.top"
+  [style.bottom.px]="labourPopoverPos.bottom"
+  [style.left.px]="labourPopoverPos.left"
+  [style.width.px]="labourPopoverPos.width"
+>
+  <div class="overflow-y-auto" [style.max-height.px]="labourPopoverPos.maxHeight">
+
+    <!-- Cabecera -->
+    <div class="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-100 dark:border-gray-600 rounded-t-xl">
+      <div class="min-w-0">
+        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Mecánicos</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+          {{ labours.at(popoverIdx).get('name')?.value || 'Actividad' }}
+        </p>
+      </div>
+      <button type="button" (click)="closeLabourPopover()"
+        class="ml-3 flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="p-4 space-y-3">
+
+      <!-- Lista de mecánicos asignados -->
+      <div *ngIf="getLabourMechanicsArray(popoverIdx).length > 0" class="space-y-2">
+        <div
+          *ngFor="let mc of getLabourMechanicsArray(popoverIdx).controls; let mi = index"
+          class="flex items-center justify-between px-3 py-2 rounded-lg bg-teal-50 dark:bg-teal-900/30 border border-teal-100 dark:border-teal-800"
+        >
+          <div class="flex items-center gap-2 min-w-0">
+            <div class="flex-shrink-0 h-7 w-7 rounded-full bg-teal-600 dark:bg-teal-500 flex items-center justify-center text-white text-xs font-bold">
+              {{ getMechanicInitials(mc.get('employeeName')?.value || '') }}
+            </div>
+            <span class="text-sm text-gray-800 dark:text-gray-100 truncate">{{ mc.get('employeeName')?.value }}</span>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <span class="text-sm font-semibold text-teal-700 dark:text-teal-300">${{ mc.get('amount')?.value | number:'1.2-2' }}</span>
+            <button *ngIf="!isFormDisabled" type="button" (click)="removeMechanicFromLabour(popoverIdx, mi)"
+              class="text-red-400 hover:text-red-600 cursor-pointer transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado de distribución -->
+      <div *ngIf="labours.at(popoverIdx).get('cost')?.value > 0"
+        class="flex items-center justify-between text-xs px-3 py-2 rounded-lg border"
+        [ngClass]="getLabourRemaining(popoverIdx) === 0
+          ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400'
+          : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400'"
+      >
+        <span *ngIf="getLabourRemaining(popoverIdx) === 0">✓ Distribuido completamente</span>
+        <ng-container *ngIf="getLabourRemaining(popoverIdx) > 0">
+          <span>Disponible:</span>
+          <span class="font-semibold">${{ getLabourRemaining(popoverIdx) | number:'1.2-2' }}</span>
+        </ng-container>
+      </div>
+
+      <!-- Confirmar mecánico pendiente -->
+      <div *ngIf="labourPendingMechanic[popoverIdx] && !isFormDisabled"
+        class="flex flex-col gap-2 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-700"
+      >
+        <p class="text-xs font-semibold text-blue-800 dark:text-blue-200 truncate">
+          {{ labourPendingMechanic[popoverIdx]!.mechanic.fullName }}
+        </p>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">Monto $</span>
+          <input
+            type="number"
+            [(ngModel)]="labourPendingMechanic[popoverIdx]!.amount"
+            [ngModelOptions]="{ standalone: true }"
+            min="0.01" step="0.01"
+            class="flex-1 min-w-0 p-1.5 text-sm border border-blue-300 dark:border-blue-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            placeholder="0.00"
+          />
+          <button type="button" (click)="confirmMechanicToLabour(popoverIdx)"
+            class="px-2.5 py-1.5 text-xs font-medium bg-teal-600 text-white rounded-lg hover:bg-teal-700 cursor-pointer whitespace-nowrap">
+            ✓ OK
+          </button>
+          <button type="button" (click)="cancelPendingMechanic(popoverIdx)"
+            class="px-2.5 py-1.5 text-xs font-medium bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 cursor-pointer">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Buscador de mecánico -->
+      <div *ngIf="!labourPendingMechanic[popoverIdx] && !isFormDisabled">
+        <input
+          #mecSearchInput
+          type="text"
+          [(ngModel)]="labourMechanicTerms[popoverIdx]"
+          [ngModelOptions]="{ standalone: true }"
+          (input)="onLabourMechanicInput(popoverIdx); updateLabourMechanicDropPosition(popoverIdx, mecSearchInput)"
+          (focus)="updateLabourMechanicDropPosition(popoverIdx, mecSearchInput)"
+          (blur)="hideLabourMechanicDrop(popoverIdx)"
+          placeholder="Buscar mecánico..."
+          class="w-full p-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder-gray-400"
+        />
+        <div
+          *ngIf="showLabourMechanicDrop[popoverIdx] && labourMechanicResults[popoverIdx]?.length"
+          class="fixed z-[10000] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl overflow-hidden"
+          [style.top.px]="labourMechanicDropPositions[popoverIdx]?.top"
+          [style.bottom.px]="labourMechanicDropPositions[popoverIdx]?.bottom"
+          [style.left.px]="labourMechanicDropPositions[popoverIdx]?.left"
+          [style.width.px]="labourMechanicDropPositions[popoverIdx]?.width"
+        >
+          <div class="overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700"
+            [style.max-height.px]="labourMechanicDropPositions[popoverIdx]?.maxHeight">
+            <div
+              *ngFor="let m of labourMechanicResults[popoverIdx]"
+              (mousedown)="selectLabourMechanic(popoverIdx, m)"
+              class="flex items-center gap-2 px-3 py-2 hover:bg-teal-50 dark:hover:bg-teal-900/30 cursor-pointer text-sm text-gray-800 dark:text-gray-100"
+            >
+              <span class="font-medium">{{ m.fullName }}</span>
+              <span *ngIf="m.position" class="text-xs text-gray-400 ml-auto">{{ m.position }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modo solo lectura sin mecánicos -->
+      <div *ngIf="isFormDisabled && getLabourMechanicsArray(popoverIdx).length === 0"
+        class="text-sm text-gray-400 dark:text-gray-500 text-center py-2 italic">
+        Sin mecánicos asignados
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<app-modal-service
+  *ngIf="showServiceModal"
+  [title]="title"
+  [isVisible]="showServiceModal"
+  [services]="modalServices"
+  [searchTerm]="modalSearchTerm"
+  [isLoading]="modalLoading"
+  [tabName]="currentModalTab"
+  [rowIndex]="currentModalRowIndex"
+  (serviceSelected)="onServiceSelected($event)"
+  (modalClosed)="onServiceModalClosed()"
+></app-modal-service>

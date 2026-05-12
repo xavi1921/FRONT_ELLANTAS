@@ -1,0 +1,406 @@
+<section class="bg-gray-50 dark:bg-gray-900 p-3 sm:p-5">
+  <div class="mx-auto px-4 lg:px-12">
+    <div class="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg">
+      <h1
+        class="px-5 pt-3 text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white"
+      >
+        Ordenes de Trabajo
+      </h1>
+
+      <!-- SECCIÓN DE FILTROS  -->
+      <div
+        class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between space-y-3 sm:space-y-0 sm:space-x-3 p-4 custom-scrollbar"
+      >
+        <!-- Sección de búsqueda y filtros -->
+        <div
+          class="w-full sm:flex-1 flex flex-col sm:flex-row sm:flex-wrap gap-3"
+        >
+          <!-- Campo de búsqueda -->
+          <div class="flex-1 min-w-0">
+            <form class="flex items-center">
+              <label for="simple-search" class="sr-only">Search</label>
+              <div class="relative w-full">
+                <div
+                  class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="w-5 h-5 text-gray-500 dark:text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  [(ngModel)]="valueFilter"
+                  (keyup.enter)="filter()"
+                  (ngModelChange)="cleanFilter()"
+                  name="search"
+                  id="simple-search"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-l-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  placeholder="Filtrar por Codigo / Cliente / Placa del Vehiculo"
+                  required=""
+                />
+              </div>
+              <button
+                (click)="filter()"
+                type="button"
+                class="flex cursor-pointer rounded-r-lg items-center justify-center text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium text-sm px-4 py-[9px] dark:bg-primary-600"
+              >
+                Buscar
+              </button>
+            </form>
+          </div>
+
+          <!-- Filtro de estado -->
+          <div class="flex items-center gap-2">
+            <div class="relative w-full sm:w-auto overflow-visible">
+              <button
+                (click)="toggleStatusDropdown()"
+                type="button"
+                class="w-full sm:w-auto min-w-0 sm:min-w-[180px] cursor-pointer flex items-center justify-between bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-800 font-medium rounded-lg text-sm px-4 py-2.5 text-gray-900 dark:text-white"
+              >
+                <div class="flex items-center gap-2">
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z"
+                    ></path>
+                  </svg>
+                  <span class="font-medium">{{ selectedStatusFilter }}</span>
+                </div>
+                <svg
+                  class="w-4 h-4 transition-transform duration-200"
+                  [class.rotate-180]="isStatusDropdownOpen"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  ></path>
+                </svg>
+              </button>
+
+              @if(isStatusDropdownOpen){
+              <div
+                class="absolute right-0 z-50 mt-1 w-full sm:w-56 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg"
+              >
+                <div class="py-1">
+                  <button
+                    *ngFor="let option of statusOptions"
+                    (click)="selectStatusFilter(option.value)"
+                    class="w-full flex items-center justify-between px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
+                  >
+                    <div class="flex items-center">
+                      <span>{{ option.label }}</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <div class="relative w-full sm:w-auto">
+              <div class="flex items-center">
+                <div
+                  class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                >
+                  <svg
+                    class="w-4 h-4 text-gray-500 dark:text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    ></path>
+                  </svg>
+                </div>
+                <input
+                  type="date"
+                  [(ngModel)]="selectedDate"
+                  (ngModelChange)="onDateChange()"
+                  name="dateFilter"
+                  id="date-filter"
+                  class="w-full sm:w-auto sm:min-w-[160px] bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block pl-10 pr-3 py-2.5"
+                  placeholder="Seleccionar fecha"
+                />
+                @if(selectedDate) {
+                <button
+                  (click)="clearDate()"
+                  type="button"
+                  class="cursor-pointer ml-2 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  title="Limpiar fecha"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    ></path>
+                  </svg>
+                </button>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones agregar y exportar reporte -->
+        <div
+          class="w-full sm:w-auto flex flex-col sm:flex-row space-y-2 sm:space-y-0 items-stretch sm:items-center justify-end sm:space-x-3 flex-shrink-0"
+        >
+          <button
+            (click)="exportReport()"
+            type="button"
+            title="Exportar reporte PDF con el filtro activo"
+            class="flex cursor-pointer items-center justify-center text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-green-600 dark:hover:bg-green-700"
+          >
+            <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Reporte PDF
+          </button>
+
+          <div *hasRole="['Super Admin', 'Admin']">
+            <button
+              (click)="goForm()"
+              type="button"
+              class="flex cursor-pointer items-center justify-center text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-primary-600"
+            >
+              <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  clip-rule="evenodd"
+                  fill-rule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                />
+              </svg>
+              Agregar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto overflow-y-hidden w-full">
+        <table
+          class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
+        >
+          <thead
+            class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+          >
+            <tr>
+              <th scope="col" class="px-4 py-3">Codigo</th>
+              <th scope="col" class="px-4 py-3">Cliente</th>
+              <th scope="col" class="px-4 py-3">Contactado</th>
+              <th scope="col" class="px-4 py-3">Vehiculo</th>
+              <th scope="col" class="px-4 py-3">Modelo Vehiculo</th>
+              <th scope="col" class="px-4 py-3">Fecha de Inicio</th>
+              <th scope="col" class="px-4 py-3">Hora de Inicio</th>
+              <th scope="col" class="px-4 py-3">Requerimiento</th>
+              <th scope="col" class="px-4 py-3">Fecha de Retiro</th>
+              <th scope="col" class="px-4 py-3">Creada Por</th>
+              <th scope="col" class="px-4 py-3">Mecánicos</th>
+              <th scope="col" class="px-4 py-3">Estado</th>
+              <th scope="col" class="px-4 py-3">
+                <span class="sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (order of orders; track $index) {
+            <tr class="border-b border-slate-300 dark:border-gray-700">
+              <th
+                scope="row"
+                class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+              >
+                {{ order.codigo }}
+              </th>
+              <td class="px-4 py-3">
+                {{ order.preInvoice.subscriber.fullName }}
+              </td>
+              <td class="px-4 py-3">
+                {{ order.contact_client ? "Sí" : "No" }}
+              </td>
+              <td class="px-4 py-3">{{ order.preInvoice.vehicle.plate }}</td>
+              <td class="px-4 py-3">{{ order.preInvoice.vehicle.model }}</td>
+              <td class="px-4 py-3">
+                {{ order.start_date | date : "dd/MM/yyyy" : "UTC" }}
+              </td>
+              <td class="px-4 py-3">{{ order.start_time }}</td>
+              <td class="px-4 py-3">{{ order.request }}</td>
+              <td class="px-4 py-3">
+                {{
+                  order.retiro?.exit_date
+                    ? (order.retiro?.exit_date | date : "dd/MM/yyyy" : "UTC")
+                    : "Sin Retirar"
+                }}
+              </td>
+
+              <td class="px-4 py-3">{{ order.created_by || "SUPER ADMIN" }}</td>
+              <td class="px-4 py-3">
+  @if (hasMechanicsAssigned(order)) {
+    <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
+      Asignado
+    </span>
+  } @else {
+    <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300">
+      Sin asignar
+    </span>
+  }
+</td>
+              <td class="px-4 py-3">
+                <span
+                  [ngClass]="getStatusClass(getLastStatus(order))"
+                  class="px-2 py-1 rounded-full text-xs font-semibold"
+                >
+                  {{ getLastStatus(order) }}
+                </span>
+              </td>
+              <td class="px-4 py-3 flex items-center justify-end">
+                <div class="relative inline-block">
+                  <button
+                    id="button-{{ order._id }}"
+                    (click)="toggleDropdown(order._id)"
+                    class="cursor-pointer inline-flex items-center p-0.5 text-sm font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
+                    type="button"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      aria-hidden="true"
+                      fill="currentColor"
+                      viewbox="0 0 20 20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"
+                      />
+                    </svg>
+                  </button>
+                  @if(isDropdownOpen[order._id]){
+                  <div
+                    class="fixed z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600"
+                    [ngStyle]="dropdownPosition(order._id)"
+                  >
+                    <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
+                      <li *hasRole="['Super Admin', 'Admin']">
+                        <a
+                          (click)="goForm(order)"
+                          class="cursor-pointer block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                          >Editar</a
+                        >
+                      </li>
+
+                      <li *hasRole="['Super Admin', 'Admin']">
+                        @if(getLastStatus(order)==="Por Retirar"
+                        ||getLastStatus(order)==="Retirado" ){
+                        <a
+                          (click)="openModalRetiro(order)"
+                          class="cursor-pointer block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                          >Retiro Vehicular</a
+                        >
+                        } @else {
+                        <a
+                          (click)="statusRetiro(order)"
+                          class="cursor-pointer block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                          >Por Retirar</a
+                        >
+                        }
+                      </li>
+                      <li *hasRole="['Super Admin', 'Admin']">
+                        <a
+                          (click)="cancelar(order)"
+                          class="cursor-pointer block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                          >Cancelar</a
+                        >
+                      </li>
+                      <li *hasRole="['Super Admin', 'Admin']">
+                        <a
+                          (click)="previewPdf(order)"
+                          class="cursor-pointer block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                          >Previsualizar PDF</a
+                        >
+                      </li>
+                      <li *hasRole="['Super Admin', 'Admin', 'Operador']">
+                        <a
+                          (click)="exportPdf(order)"
+                          class="cursor-pointer block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                          >Exportar PDF</a
+                        >
+                      </li>
+                    </ul>
+                    <div class="py-1" *hasRole="['Super Admin']">
+                      <a
+                        (click)="delete(order)"
+                        class="cursor-pointer block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                        >Eliminar</a
+                      >
+                    </div>
+                  </div>
+                  }
+                </div>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+        @if(errorMessage && orders.length===0){
+        <app-error-message [message]="errorMessage"></app-error-message>
+        } @else if(orders.length===0){
+        <app-error-message message="No hay Resultados"></app-error-message>
+        }
+      </div>
+      <app-pagination
+        [totalItems]="totalItems"
+        [pageEvent]="pageEvent"
+        (pageChange)="onPageChange($event)"
+        (pageSizeChange)="onPageSizeChange($event)"
+        [module]="'Ordenes'"
+      >
+      </app-pagination>
+    </div>
+  </div>
+</section>
+
+<app-modal
+  [isOpen]="open"
+  (closeModal)="closeModal()"
+  (save)="create($event)"
+  (edit)="edit($event)"
+  [order]="selectedOrder"
+></app-modal>
+<app-modal-retiro
+  [isOpen]="openRetiro"
+  [order]="selectedOrder"
+  (save)="retiro($event)"
+  (closeModal)="closeModalRetiro()"
+></app-modal-retiro>
+<app-spinner [load]="load"></app-spinner>

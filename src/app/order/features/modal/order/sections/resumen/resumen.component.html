@@ -1,0 +1,72 @@
+<form [formGroup]="form()!">
+  <div
+    class="totals-component w-full md:w-80 lg:w-96 bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mt-4 md:mt-0 md:ml-4"
+  >
+    <h3
+      class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b pb-2"
+    >
+      Resumen
+    </h3>
+
+    <div class="space-y-3">
+      <!-- Total de mano de obra -->
+      <div class="flex justify-between items-center">
+        <span class="text-base font-semibold text-gray-900 dark:text-white"
+          >Total de mano de obra</span
+        >
+        <span class="text-base font-semibold text-gray-900 dark:text-white">{{
+          totals()?.total_mo | currency
+        }}</span>
+      </div>
+
+      <!-- Total de repuestos -->
+      <div class="flex justify-between items-center">
+        <span class="text-base font-semibold text-gray-900 dark:text-white"
+          >Total de repuestos</span
+        >
+        <span class="text-base font-semibold text-gray-900 dark:text-white">{{
+          totals()?.total_r | currency
+        }}</span>
+      </div>
+
+      <!-- Línea divisoria -->
+      <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+
+      <!-- Subtotal -->
+      <div class="flex justify-between items-center">
+        <span class="text-base font-semibold text-gray-900 dark:text-white"
+          >Subtotal</span
+        >
+        <span class="text-base font-semibold text-gray-900 dark:text-white">{{
+          totals()?.subTotal | currency
+        }}</span>
+      </div>
+
+      <div class="flex justify-between items-center">
+        <span class="text-base font-semibold text-gray-900 dark:text-white"
+          >Abono</span
+        >
+        <div>
+          <input
+            type="text"
+            formControlName="abono"
+            [readOnly]="readonly()"
+            class="w-20 text-center rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+          />
+        </div>
+      </div>
+      <!-- Línea divisoria -->
+      <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+
+      <!-- Total -->
+      <div class="flex justify-between items-center">
+        <span class="text-lg font-bold text-gray-900 dark:text-white"
+          >Total</span
+        >
+        <span class="text-lg font-bold text-gray-900 dark:text-white">{{
+          totals()?.total | currency
+        }}</span>
+      </div>
+    </div>
+  </div>
+</form>

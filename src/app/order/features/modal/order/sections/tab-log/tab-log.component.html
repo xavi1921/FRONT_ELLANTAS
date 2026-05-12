@@ -1,0 +1,176 @@
+<div class="py-2">
+  @if (loading()) {
+    <div class="flex justify-center py-10">
+      <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+    </div>
+  } @else if (logs().length === 0) {
+    <div class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+      Sin registros de historial para esta orden.
+    </div>
+  } @else {
+    <div class="space-y-3">
+      @for (log of logs(); track $index; let i = $index) {
+        <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-800">
+
+          <!-- Cabecera -->
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-3">
+              <span class="rounded px-2 py-0.5 text-xs font-semibold" [ngClass]="actionBadgeClass(log.action)">
+                {{ log.action }}
+              </span>
+              <span class="text-sm font-medium text-gray-800 dark:text-gray-200">
+                {{ log.performed_by }}
+              </span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-xs text-gray-400">
+                {{ log.createdAt | date : 'dd/MM/yyyy HH:mm' }}
+              </span>
+              @if (hasDetails(log)) {
+                <button type="button" (click)="toggleExpand(i)"
+                  class="cursor-pointer text-xs text-blue-600 hover:underline dark:text-blue-400">
+                  {{ expandedIndex() === i ? 'Ocultar' : 'Ver cambios' }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Mensaje -->
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ log.message }}</p>
+
+          <!-- Detalle expandible -->
+          @if (expandedIndex() === i && hasDetails(log)) {
+            <div class="mt-3 space-y-4 border-t border-gray-100 pt-3 dark:border-gray-700">
+
+              <!-- ── Campos generales ── -->
+              @if (visibleFieldUpdates(log.details?.fields); as flds) {
+                @if (flds.length > 0) {
+                  <div>
+                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                      Datos de la orden
+                    </p>
+                    <div class="space-y-1">
+                      @for (f of flds; track f.label) {
+                        <div class="flex flex-wrap items-center gap-1 text-xs pl-2">
+                          <span class="font-medium text-gray-700 dark:text-gray-300 min-w-[120px]">{{ f.label }}</span>
+                          <span class="text-red-500 line-through">{{ f.before }}</span>
+                          <span class="text-gray-400">→</span>
+                          <span class="text-green-600 font-medium">{{ f.after }}</span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              }
+
+              <!-- ── Mano de obra ── -->
+              @if (log.details?.labour?.added?.length > 0 ||
+                   log.details?.labour?.removed?.length > 0 ||
+                   log.details?.labour?.updated?.length > 0) {
+                <div>
+                  <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                    Mano de obra
+                  </p>
+                  <div class="space-y-2 pl-2">
+
+                    @for (item of log.details.labour.added; track $index) {
+                      <div class="rounded border border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20 p-2">
+                        <p class="text-xs font-semibold text-green-700 dark:text-green-400">
+                          + Agregada: {{ item.name }}
+                        </p>
+                        <div class="mt-1 space-y-0.5 text-xs text-gray-600 dark:text-gray-400">
+                          @if (item.cost) { <div>Costo: <span class="font-medium">S/ {{ item.cost }}</span></div> }
+                          @if (item.date) { <div>Fecha: <span class="font-medium">{{ fmtDate(item.date) }}</span></div> }
+                        </div>
+                      </div>
+                    }
+
+                    @for (item of log.details.labour.removed; track $index) {
+                      <div class="rounded border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20 p-2">
+                        <p class="text-xs font-semibold text-red-700 dark:text-red-400">
+                          − Eliminada: {{ item.name }}
+                        </p>
+                      </div>
+                    }
+
+                    @for (item of log.details.labour.updated; track $index) {
+                      <div class="rounded border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20 p-2">
+                        <p class="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-1">
+                          ✎ Modificada: {{ item.before?.name ?? item.after?.name }}
+                        </p>
+                        @for (diff of labourDiff(item); track diff.label) {
+                          <div class="flex flex-wrap items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                            <span class="font-medium min-w-[60px]">{{ diff.label }}:</span>
+                            <span class="text-red-500 line-through">{{ diff.before }}</span>
+                            <span class="text-gray-400">→</span>
+                            <span class="text-green-600 font-medium">{{ diff.after }}</span>
+                          </div>
+                        }
+                      </div>
+                    }
+
+                  </div>
+                </div>
+              }
+
+              <!-- ── Repuestos ── -->
+              @if (log.details?.spare_parts?.added?.length > 0 ||
+                   log.details?.spare_parts?.removed?.length > 0 ||
+                   log.details?.spare_parts?.updated?.length > 0) {
+                <div>
+                  <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                    Repuestos
+                  </p>
+                  <div class="space-y-2 pl-2">
+
+                    @for (item of log.details.spare_parts.added; track $index) {
+                      <div class="rounded border border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20 p-2">
+                        <p class="text-xs font-semibold text-green-700 dark:text-green-400">
+                          + Agregado: {{ item.name ?? 'Repuesto' }}
+                        </p>
+                        <div class="mt-1 space-y-0.5 text-xs text-gray-600 dark:text-gray-400">
+                          @if (item.amount)     { <div>Cantidad: <span class="font-medium">{{ item.amount }}</span></div> }
+                          @if (item.sale_price) { <div>Precio: <span class="font-medium">S/ {{ item.sale_price }}</span></div> }
+                        </div>
+                      </div>
+                    }
+
+                    @for (item of log.details.spare_parts.removed; track $index) {
+                      <div class="rounded border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20 p-2">
+                        <p class="text-xs font-semibold text-red-700 dark:text-red-400">
+                          − Eliminado: {{ item.name ?? 'Repuesto' }}
+                        </p>
+                        <div class="mt-1 space-y-0.5 text-xs text-gray-600 dark:text-gray-400">
+                          @if (item.amount)     { <div>Cantidad: <span class="font-medium">{{ item.amount }}</span></div> }
+                          @if (item.sale_price) { <div>Precio: S/ <span class="font-medium">{{ item.sale_price }}</span></div> }
+                        </div>
+                      </div>
+                    }
+
+                    @for (item of log.details.spare_parts.updated; track $index) {
+                      <div class="rounded border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20 p-2">
+                        <p class="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-1">
+                          ✎ Modificado: {{ item.before?.name ?? item.after?.name ?? 'Repuesto' }}
+                        </p>
+                        @for (diff of sparePartDiff(item); track diff.label) {
+                          <div class="flex flex-wrap items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                            <span class="font-medium min-w-[60px]">{{ diff.label }}:</span>
+                            <span class="text-red-500 line-through">{{ diff.before }}</span>
+                            <span class="text-gray-400">→</span>
+                            <span class="text-green-600 font-medium">{{ diff.after }}</span>
+                          </div>
+                        }
+                      </div>
+                    }
+
+                  </div>
+                </div>
+              }
+
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

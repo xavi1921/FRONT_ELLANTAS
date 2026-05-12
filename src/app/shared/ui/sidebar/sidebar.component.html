@@ -1,0 +1,15 @@
+<aside
+    class="h-full md:block transition-all duration-300 fixed md:static  left-0 z-50 custom-scrollbar" 
+    [class.hidden]="sidebarService.collapsed | async"
+    [class.w-16]="sidebarService.collapsed | async"
+    [class.w-64]="(sidebarService.collapsed | async) === false"
+  >
+    <div
+      class="flex h-full flex-col  space-y-4 divide-y divide-gray-200  border-slate-300 overflow-y-auto
+       bg-white py-4 px-3 dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-800"
+      [class.rounded]="rounded()"
+      [ngClass]="extraClass()"
+    >
+      <ng-content></ng-content>
+    </div>
+  </aside>

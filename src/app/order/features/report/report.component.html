@@ -1,0 +1,255 @@
+<div class="p-6 max-w-5xl mx-auto">
+
+  <!-- Encabezado -->
+  <div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Reporte de Mano de Obra por Mecánico</h2>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Filtra por mes y año para ver el desempeño de cada trabajador.</p>
+  </div>
+
+  <!-- Filtros -->
+  <div class="flex flex-wrap gap-4 mb-4 items-end">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mes</label>
+      <select
+        [(ngModel)]="selectedMonth"
+        class="rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+      >
+        <option *ngFor="let m of months" [value]="m.value">{{ m.label }}</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Año</label>
+      <select
+        [(ngModel)]="selectedYear"
+        class="rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+      >
+        <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+      </select>
+    </div>
+
+    <!-- Filtro mecánico -->
+    <div class="relative" style="min-width: 220px">
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mecánico</label>
+      <div class="relative">
+        <input
+          #mecInput
+          type="text"
+          [(ngModel)]="mechanicSearchTerm"
+          (input)="onMechanicInput(mecInput)"
+          (focus)="onMechanicInput(mecInput)"
+          (blur)="hideMechanicDrop()"
+          placeholder="Buscar mecánico..."
+          autocomplete="off"
+          class="w-full rounded-lg border border-gray-300 bg-white p-2 pr-8 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+        />
+        @if(selectedMechanic) {
+        <button
+          type="button"
+          (click)="clearMechanicFilter()"
+          class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+          title="Limpiar filtro"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+        }
+      </div>
+
+      <!-- Dropdown mecánico (position: fixed) -->
+      @if(showMechanicDrop && mechanicResults.length > 0) {
+      <div
+        class="fixed z-[9999] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg overflow-y-auto"
+        [style.top]="mechanicDropPos.bottom === null ? (mechanicDropPos.top + 'px') : 'auto'"
+        [style.bottom]="mechanicDropPos.bottom !== null ? (mechanicDropPos.bottom + 'px') : 'auto'"
+        [style.left.px]="mechanicDropPos.left"
+        [style.width.px]="mechanicDropPos.width"
+        [style.max-height.px]="mechanicDropPos.maxHeight"
+      >
+        @for(m of mechanicResults; track m._id) {
+        <button
+          type="button"
+          class="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 dark:hover:bg-blue-900/30 text-gray-800 dark:text-gray-200"
+          (mousedown)="selectMechanic(m)"
+        >
+          <span class="font-medium">{{ m.fullName }}</span>
+          @if(m.position) {
+          <span class="text-xs text-gray-400 ml-1">· {{ m.position }}</span>
+          }
+        </button>
+        }
+      </div>
+      }
+    </div>
+
+    <div class="flex gap-2">
+      <button
+        (click)="search()"
+        [disabled]="loading"
+        class="cursor-pointer flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg text-sm px-5 py-2"
+      >
+        <svg *ngIf="loading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+        {{ loading ? 'Buscando...' : 'Generar reporte' }}
+      </button>
+
+      @if(filteredReport.length > 0) {
+      <button
+        (click)="exportPdf()"
+        class="cursor-pointer flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg text-sm px-4 py-2"
+        title="Exportar PDF"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0121 9.414V19a2 2 0 01-2 2z"/>
+        </svg>
+        Exportar PDF
+      </button>
+      }
+    </div>
+  </div>
+
+  <!-- Chip de mecánico seleccionado -->
+  @if(selectedMechanic) {
+  <div class="flex items-center gap-2 mb-4">
+    <span class="text-xs text-gray-500 dark:text-gray-400">Filtrando por:</span>
+    <span class="inline-flex items-center gap-1.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-medium px-3 py-1 rounded-full">
+      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
+      </svg>
+      {{ selectedMechanic.fullName }}
+      <button type="button" (click)="clearMechanicFilter()" class="ml-0.5 hover:text-blue-900 dark:hover:text-blue-100">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </span>
+  </div>
+  }
+
+  <!-- Sin resultados (búsqueda vacía) -->
+  @if(searched && report.length === 0 && !loading){
+  <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+    <svg class="w-12 h-12 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0121 9.414V19a2 2 0 01-2 2z" />
+    </svg>
+    <p class="font-medium">No hay datos para {{ selectedMonthLabel }} {{ selectedYear }}</p>
+    <p class="text-xs mt-1">Asegúrate de asignar mecánicos a las manos de obra en las órdenes.</p>
+  </div>
+  }
+
+  <!-- Resultados -->
+  @if(report.length > 0){
+
+  <!-- Sin resultados tras filtrar por mecánico -->
+  @if(filteredReport.length === 0) {
+  <div class="text-center py-10 text-gray-500 dark:text-gray-400">
+    <svg class="w-10 h-10 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/>
+    </svg>
+    <p class="font-medium">{{ selectedMechanic?.fullName }} no tiene actividades en {{ selectedMonthLabel }} {{ selectedYear }}</p>
+    <button type="button" (click)="clearMechanicFilter()" class="text-xs text-blue-500 hover:underline mt-1">Quitar filtro</button>
+  </div>
+  }
+
+  @if(filteredReport.length > 0) {
+
+  <!-- Resumen top -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div class="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-xl p-4">
+      <p class="text-xs text-blue-600 dark:text-blue-400 font-semibold uppercase tracking-wide">Total del período</p>
+      <p class="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-1">$ {{ totalGeneral | number:'1.2-2' }}</p>
+      <p class="text-xs text-blue-500 dark:text-blue-400 mt-0.5">
+        {{ selectedMonthLabel }} {{ selectedYear }}
+        @if(selectedMechanic){ <span>· {{ selectedMechanic.fullName }}</span> }
+      </p>
+    </div>
+    <div class="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-xl p-4">
+      <p class="text-xs text-green-600 dark:text-green-400 font-semibold uppercase tracking-wide">Mejor mecánico</p>
+      <p class="text-lg font-bold text-green-700 dark:text-green-300 mt-1 truncate">{{ topEmployee?.employee?.fullName }}</p>
+      <p class="text-xs text-green-500 dark:text-green-400 mt-0.5">$ {{ topEmployee?.totalIngresos | number:'1.2-2' }}</p>
+    </div>
+    <div class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wide">Mecánicos activos</p>
+      <p class="text-2xl font-bold text-gray-700 dark:text-gray-200 mt-1">{{ filteredReport.length }}</p>
+      <p class="text-xs text-gray-400 mt-0.5">con mano de obra asignada</p>
+    </div>
+  </div>
+
+  <!-- Tabla por mecánico -->
+  <div class="space-y-3">
+    @for(item of filteredReport; track item.employee._id; let rank = $index){
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+
+      <!-- Fila resumen del mecánico -->
+      <div
+        class="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50"
+        (click)="toggleExpand(item)"
+      >
+        <div class="flex items-center gap-3">
+          <!-- Posición -->
+          <span class="text-xs font-bold w-6 text-center"
+            [class.text-yellow-500]="rank === 0"
+            [class.text-gray-400]="rank > 0">
+            #{{ rank + 1 }}
+          </span>
+          <!-- Avatar -->
+          <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+            {{ item.employee.initials || getInitials(item.employee.fullName) }}
+          </div>
+          <!-- Nombre -->
+          <div>
+            <p class="font-semibold text-gray-800 dark:text-white text-sm">{{ item.employee.fullName }}</p>
+            <p class="text-xs text-gray-400">{{ item.employee.position || 'Mecánico' }} &bull; {{ item.cantidadLabours }} actividad{{ item.cantidadLabours !== 1 ? 'es' : '' }}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="text-base font-bold text-green-600 dark:text-green-400">$ {{ item.totalIngresos | number:'1.2-2' }}</span>
+          <svg class="w-4 h-4 text-gray-400 transition-transform" [class.rotate-180]="item.expanded"
+            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Detalle de labours -->
+      @if(item.expanded){
+      <div class="border-t border-gray-100 dark:border-gray-700 px-5 pb-4 pt-2">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-xs text-gray-500 dark:text-gray-400 uppercase">
+              <th class="text-left py-2 font-medium">Orden</th>
+              <th class="text-left py-2 font-medium">Actividad</th>
+              <th class="text-right py-2 font-medium">Costo $</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for(labour of item.labours; track $index){
+            <tr class="border-t border-gray-50 dark:border-gray-700/50">
+              <td class="py-2 text-gray-500 dark:text-gray-400 font-mono text-xs">#{{ labour.codigo }}</td>
+              <td class="py-2 text-gray-700 dark:text-gray-200">{{ labour.nombre }}</td>
+              <td class="py-2 text-right font-medium text-gray-800 dark:text-gray-100">$ {{ labour.costo | number:'1.2-2' }}</td>
+            </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr class="border-t border-gray-200 dark:border-gray-600">
+              <td colspan="2" class="pt-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Total</td>
+              <td class="pt-2 text-right font-bold text-green-600 dark:text-green-400">$ {{ item.totalIngresos | number:'1.2-2' }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      }
+    </div>
+    }
+  </div>
+
+  } <!-- end filteredReport.length > 0 -->
+  } <!-- end report.length > 0 -->
+
+</div>

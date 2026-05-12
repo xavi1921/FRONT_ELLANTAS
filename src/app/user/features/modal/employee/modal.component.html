@@ -1,0 +1,249 @@
+@if(isOpen()){
+<!-- Modal backdrop con overlay semi-transparente -->
+<div
+  class="fixed inset-0 z-40 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-gray-900/50 dark:bg-gray-900/80"
+  id="updateUserModal"
+>
+  <div
+    class="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:max-w-lg md:max-w-xl"
+  >
+    <!-- Encabezado del modal -->
+    <div
+      class="mb-2 flex items-start justify-between pb-3 dark:border-gray-700"
+    >
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+        {{ employee() ? "Editar Empleado" : "Crear Nuevo Empleado" }}
+      </h3>
+      <button
+        type="button"
+        (click)="onClose()"
+        class="cursor-pointer ml-auto inline-flex items-center rounded-lg bg-transparent p-1.5 text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white"
+      >
+        <svg
+          class="h-5 w-5"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+            clip-rule="evenodd"
+          ></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="max-h-[calc(95vh-8rem)] overflow-y-auto px-1">
+      <form [formGroup]="employeeForm" (ngSubmit)="onSubmit()">
+        <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label
+              for="type"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+            >
+              Tipo Documento
+            </label>
+            <select
+              id="type"
+              formControlName="tipoDoc"
+              (change)="onTypeChange()"
+              class="cursor-pointer block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            >
+              <option>DNI</option>
+              <option>RUC</option>
+            </select>
+          </div>
+          <div>
+            <label
+              for="identification"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >N° Identificación</label
+            >
+            <input
+              formControlName="dni"
+              type="text"
+              id="identification"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            />
+            @if(employeeForm.get('dni')?.hasError('invalidCedula') &&
+            (employeeForm.get('dni')?.touched ||
+            employeeForm.get('dni')?.dirty)){
+            <app-tool-tip
+              [message]="'La cédula debe contener 10 dígitos y ser válida.'"
+            ></app-tool-tip>
+            } @if(employeeForm.get('dni')?.hasError('invalidRuc') &&
+            (employeeForm.get('dni')?.touched ||
+            employeeForm.get('dni')?.dirty)){
+            <app-tool-tip
+              [message]="'El RUC debe contener 13 dígitos y ser válido.'"
+            ></app-tool-tip>
+            }
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="mb-3">
+          <label
+            for="email"
+            class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+            >Email</label
+          >
+          <input
+            formControlName="email"
+            type="email"
+            id="email"
+            class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+          />
+
+          @if(employeeForm.get('email')?.hasError('required') &&
+          (employeeForm.get('email')?.touched ||
+          employeeForm.get('email')?.dirty)){
+          <app-tool-tip
+            [message]="'Ingrese su correo electrónico.'"
+          ></app-tool-tip>
+          } @if(employeeForm.get('email')?.hasError('invalidEmail')){
+          <app-tool-tip
+            [message]="'Ingrese un correo electrónico válido.'"
+          ></app-tool-tip>
+          }
+        </div>
+
+        <!-- Nombre y Telefono -->
+        <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label
+              for="fullName"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >Nombre Completo</label
+            >
+            <input
+              formControlName="fullName"
+              type="text"
+              id="fullName"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            />
+            @if(employeeForm.get('fullName')?.hasError('required') &&
+            (employeeForm.get('fullName')?.touched ||
+            employeeForm.get('fullName')?.dirty)){
+            <app-tool-tip
+              [message]="'Ingrese su nombre completo.'"
+            ></app-tool-tip>
+            } @if(employeeForm.get('fullName')?.hasError('invalidText')){
+            <app-tool-tip [message]="'Ingrese solo letras.'"></app-tool-tip>
+            }
+          </div>
+          <div>
+            <label
+              for="cellPhone"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >Telefono</label
+            >
+            <input
+              formControlName="cellPhone"
+              type="text"
+              id="cellPhone"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            />
+            @if(employeeForm.get('cellPhone')?.hasError('required') &&
+            (employeeForm.get('cellPhone')?.touched ||
+            employeeForm.get('cellPhone')?.dirty)){
+            <app-tool-tip [message]="'Ingrese su telefono.'"></app-tool-tip>
+            } @if(employeeForm.get('cellPhone')?.hasError('invalidNumber')){
+            <app-tool-tip [message]="'Ingrese solo numeros.'"></app-tool-tip>
+            }
+            @if (employeeForm.get('cellPhone')?.hasError('invalidLength')) {
+            <app-tool-tip
+              [message]="
+                'El número debe tener 9 (convencional) o 10 (celular) dígitos'
+              "
+            ></app-tool-tip>
+            }
+          </div>
+        </div>
+        <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label
+              for="gender"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+            >
+              Genero
+              <span class="ml-1 text-gray-500 dark:text-gray-400">
+                <svg
+                  class="inline-block h-4 w-4"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+              </span>
+            </label>
+            <select
+              id="gender"
+              formControlName="gender"
+              class="cursor-pointer block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            >
+              <option>MASCULINO</option>
+              <option>FEMENINO</option>
+            </select>
+          </div>
+          <div>
+            <label
+              for="position"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >Cargo</label
+            >
+               <select
+              id="position"
+              formControlName="position"
+              class="cursor-pointer block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            >
+              <option>SECRETARIA</option>
+              <option>MECANICO</option>
+                  <option>ELECTROMECÁNICO</option>
+            </select>
+
+          </div>
+        </div>
+        <!-- Fecha Inicio -->
+        <div class="mb-3">
+          <label
+            for="position"
+            class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+            >Fecha Inicio</label
+          >
+          <input
+            formControlName="startDate"
+            type="date"
+            id="position"
+            class="block w-full cursor-pointer rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+          />
+          @if(employeeForm.get('startDate')?.hasError('invalidDate')){
+          <app-tool-tip
+            [message]="'No puede seleccionar una fecha proxima'"
+          ></app-tool-tip>
+          }
+        </div>
+
+        <div class="mt-3 flex items-center justify-start gap-3">
+          <button
+            type="submit"
+            [disabled]="!employeeForm.valid"
+            class="disabled:cursor-default cursor-pointer rounded-lg bg-blue-700 px-4 py-2 text-xs font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          >
+            {{ employee() ? "Actualizar" : "Guardar" }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Botones de acción - Fijos en la parte inferior -->
+  </div>
+</div>
+
+}

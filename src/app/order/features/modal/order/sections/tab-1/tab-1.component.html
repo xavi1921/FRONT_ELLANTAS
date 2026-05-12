@@ -1,0 +1,271 @@
+<form [formGroup]="form()!">
+  <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <div>
+      <label
+        for="owner"
+        class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+        >Vehiculo (Placa)</label
+      >
+      <div class="relative w-full">
+        <div
+          class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+        >
+          <svg
+            aria-hidden="true"
+            class="w-5 h-5 text-gray-500 dark:text-gray-400"
+            fill="currentColor"
+            viewbox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+        <input
+          formControlName="vehicleFilter"
+          type="text"
+          [readonly]="readonly()"
+          name="search"
+          id="simple-search"
+          (ngModelChange)="cleanFilter()"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+          placeholder="Introduzca la placa o propietario del vehiculo."
+          required=""
+        />
+      </div>
+      @if(form()?.get('vehicleFilter')?.hasError('required') &&
+      (form()?.get('vehicleFilter')?.touched ||
+      form()?.get('vehicleFilter')?.dirty )){
+      <app-tool-tip [message]="'Debe filtrar un vehiculo'"></app-tool-tip>
+      } @if(filteredVechicle.length>0){
+      <div
+        class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+      >
+        @for (vehicle of filteredVechicle; track $index) {
+        <div
+          (click)="
+            selectedVehicle(
+              vehicle._id,
+              vehicle.plate,
+              vehicle.model,
+              vehicle.owner
+            )
+          "
+          class="mb-1 cursor-pointer block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+        >
+          Placa {{ vehicle.plate }}
+        </div>
+        }
+      </div>
+      } @if(notFound){
+      <div
+        class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+      >
+        <p>{{ errorMessage }}</p>
+      </div>
+      }
+    </div>
+    <div>
+      <label
+        class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+        >Modelo del Vehiculo</label
+      >
+      <input
+        type="text"
+        formControlName="model_veh"
+        readonly
+        id="model"
+        class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+      />
+    </div>
+  </div>
+  <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+    <div>
+      <label
+        class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+      >
+        Propietario
+      </label>
+      <input
+        formControlName="client"
+        readonly
+        type="text"
+        id="identification"
+        class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+      />
+    </div>
+    <div>
+      <label
+        class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+        >Telefono 1
+      </label>
+      <input
+        formControlName="contact_client"
+        readonly
+        type="text"
+        id="identification"
+        class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+      />
+    </div>
+    <div>
+      <label
+        class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+        >Telefono 2
+      </label>
+      <input
+        formControlName="contact_client_2"
+        readonly
+        type="text"
+        id="identification"
+        class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+      />
+    </div>
+  </div>
+  <div class="mb-3">
+    <div>
+      <label
+        class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+        >Requerimiento
+      </label>
+      <textarea
+        formControlName="request"
+        type="text"
+        [readonly]="readonly()"
+        class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 resize-y min-h-[50px] max-h-[100px]"
+      ></textarea>
+      @if(form()?.get('request')?.hasError('required') &&
+      (form()?.get('request')?.touched || form()?.get('request')?.dirty)){
+      <app-tool-tip [message]="'Ingrese su Requerimiento'"></app-tool-tip>
+      }
+    </div>
+  </div>
+  <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-4">
+    <div>
+      <label
+        for="kmts"
+        class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+        >Kilometraje del Vehiculo</label
+      >
+      <input
+        formControlName="kmts"
+        [readonly]="readonly()"
+        type="text"
+        id="kmts"
+        class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+      />
+    </div>
+    <div>
+      <label
+        for="key"
+        class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+        >Clave del Vehiculo</label
+      >
+      <input
+        formControlName="key_veh"
+        [readonly]="readonly()"
+        type="text"
+        class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+      />
+    </div>
+    <div>
+      <label
+        for="identification"
+        class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+        >Fecha
+      </label>
+      <input
+        type="date"
+        [readonly]="readonly()"
+        formControlName="start_date"
+        id="identification"
+        class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+      />
+      @if(form()?.get('start_date')?.hasError('invalidDate')){
+      <app-tool-tip
+        [message]="'No puede seleccionar una fecha proxima'"
+      ></app-tool-tip>
+      }
+    </div>
+    <div>
+      <label
+        for="identification"
+        class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+        >Hora
+      </label>
+      <input
+        type="time"
+        [readonly]="readonly()"
+        formControlName="start_time"
+        id="identification"
+        class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+      />
+    </div>
+  </div>
+  <div class="mb-3">
+    <label
+      class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+      >Observación</label
+    >
+    <textarea
+      formControlName="observation"
+      [readonly]="readonly()"
+      type="text"
+      class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 resize-y min-h-[50px] max-h-[100px]"
+    ></textarea>
+  </div>
+  <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2 items-center">
+    <div>
+      <label class="block text-sm font-medium text-blue-700 dark:text-blue-400">
+        Estado
+      </label>
+      <ul
+        class="flex flex-col sm:flex-row w-full items-start sm:items-center rounded-lg border-gray-200 bg-white text-sm font-medium text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+      >
+        @for (item of status; track $index) {
+        <li class="w-full sm:w-auto border-gray-200 dark:border-gray-600">
+          <div class="flex items-center pl-3">
+            <input
+              type="checkbox"
+              [value]="item"
+              (change)="onCheckChange($event)"
+              [checked]="form()?.get('status')?.value.includes(item)"
+              [disabled]="
+                readonly() ||
+                (isEdit() &&
+                  item === 'Pendiente' &&
+                  form()?.get('status')?.value.includes('Pendiente'))
+              "
+              class="h-3 w-3 cursor-pointer disabled:cursor-default rounded border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:ring-offset-gray-700"
+            />
+            <label
+              class="ml-2 py-2 text-xs font-medium text-gray-900 dark:text-gray-300"
+            >
+              {{ item }}
+            </label>
+          </div>
+        </li>
+        }
+      </ul>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-blue-700 dark:text-blue-400">
+        ¿Se llamó al cliente?
+      </label>
+      <input
+        formControlName="client_contact"
+        type="checkbox"
+        [disabled]="readonly()"
+        class="h-3 w-3 cursor-pointer disabled:cursor-default rounded border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:ring-offset-gray-700"
+      />
+      <label
+        class="ml-2 py-2 text-xs font-medium text-gray-900 dark:text-gray-300"
+      >
+        Si
+      </label>
+    </div>
+  </div>
+</form>
+<app-spinner [load]="load"></app-spinner>

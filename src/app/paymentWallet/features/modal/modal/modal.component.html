@@ -1,0 +1,498 @@
+@if(isOpen()){
+<!-- Modal backdrop con overlay semi-transparente -->
+<div
+  class="fixed inset-0 z-40 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-gray-900/50 dark:bg-gray-900/80"
+  id="paymentModal"
+>
+  <div
+    class="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:max-w-lg md:max-w-xl"
+  >
+    <!-- Encabezado del modal -->
+    <div
+      class="mb-2 flex items-start justify-between pb-3 dark:border-gray-700"
+    >
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+        Registrar Pago
+      </h3>
+      <button
+        type="button"
+        (click)="onClose()"
+        class="cursor-pointer ml-auto inline-flex items-center rounded-lg bg-transparent p-1.5 text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white"
+      >
+        <svg
+          class="h-5 w-5"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+            clip-rule="evenodd"
+          ></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="max-h-[calc(95vh-6rem)] px-1">
+      <!-- Información de pago pendiente -->
+      <!-- Valor original (siempre visible) -->
+      <div class="mb-4 rounded-lg bg-blue-50 p-3 dark:bg-blue-900/30">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-medium text-blue-700 dark:text-blue-400">
+            Total a pagar:
+          </span>
+          <span class="text-lg font-bold text-blue-800 dark:text-blue-300">
+            ${{ pendingAmount?.toFixed(2) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Monto restante (solo cuando hay pago parcial) -->
+      <div
+        *ngIf="remainingAmount !== null && remainingAmount > 0"
+        class="mb-4 rounded-lg bg-orange-50 p-3 dark:bg-orange-900/30"
+      >
+        <div class="flex items-center justify-between">
+          <span
+            class="text-sm font-medium text-orange-700 dark:text-orange-400"
+          >
+            Restante por pagar:
+          </span>
+          <span class="text-lg font-bold text-orange-800 dark:text-orange-300">
+            ${{ remainingAmount.toFixed(2) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Mensaje de pago completo -->
+      <div
+        *ngIf="remainingAmount === 0"
+        class="mb-4 rounded-lg bg-green-50 p-3 dark:bg-green-900/30"
+      >
+        <div class="flex items-center justify-center">
+          <span class="text-sm font-medium text-green-700 dark:text-green-400">
+            ✅ Pago completo
+          </span>
+        </div>
+      </div>
+
+      <form [formGroup]="paymentForm" (ngSubmit)="onSubmit()">
+        <!-- Método de pago -->
+        <div class="mb-4">
+          <label
+            for="paymentMethod"
+            class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+          >
+            Forma de Pago
+          </label>
+          <select
+            id="paymentMethod"
+            formControlName="paymentMethod"
+            class="cursor-pointer block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+          >
+            @for (method of paymentMethods; track method.id) {
+            <option [value]="method.id">{{ method.name }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Monto a pagar (común para todos los métodos) -->
+        <div class="mb-4">
+          <label
+            for="amount"
+            class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+          >
+            Valor a Pagar
+          </label>
+          <div class="relative">
+            <span
+              class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500"
+              >$</span
+            >
+            <input
+              formControlName="amount"
+              type="number"
+              step="0.01"
+              id="amount"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 pl-7 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              placeholder="0.00"
+            />
+          </div>
+          @if(paymentForm.get('amount')?.hasError('required') &&
+          (paymentForm.get('amount')?.touched ||
+          paymentForm.get('amount')?.dirty)){
+          <p class="mt-1 text-xs text-red-600 dark:text-red-400">
+            Debe ingresar el valor a pagar
+          </p>
+          } @if(paymentForm.get('amount')?.hasError('min') &&
+          (paymentForm.get('amount')?.touched ||
+          paymentForm.get('amount')?.dirty)){
+          <p class="mt-1 text-xs text-red-600 dark:text-red-400">
+            El valor debe ser mayor a 0
+          </p>
+          }
+        </div>
+
+        <!-- Campos específicos para Tarjeta de Crédito/Débito -->
+        @if(paymentForm.get('paymentMethod')?.value === 'card'){
+        <div
+          class="mb-4 rounded-lg border border-gray-200 p-3 dark:border-gray-700"
+        >
+          <h4 class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+            Detalles de Tarjeta
+          </h4>
+
+          <div class="mb-3">
+            <label
+              for="cardBank"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+            >
+              Banco
+            </label>
+            <select
+              id="cardBank"
+              formControlName="cardBank"
+              class="cursor-pointer block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            >
+              <option value="" disabled selected>Seleccione un banco</option>
+              @for (bank of banks; track bank.id) {
+              <option [value]="bank.id">{{ bank.name }}</option>
+              }
+            </select>
+            @if(paymentForm.get('cardBank')?.hasError('required') &&
+            (paymentForm.get('cardBank')?.touched ||
+            paymentForm.get('cardBank')?.dirty)){
+            <p class="mt-1 text-xs text-red-600 dark:text-red-400">
+              Seleccione el banco de la tarjeta
+            </p>
+            }
+          </div>
+
+          <div class="mb-3">
+            <label
+              for="cardType"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+            >
+              Tipo de Tarjeta
+            </label>
+            <select
+              id="cardType"
+              formControlName="cardType"
+              class="cursor-pointer block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            >
+              <option value="" disabled selected>
+                Seleccione tipo de tarjeta
+              </option>
+              @for (cardType of cardTypes; track cardType.id) {
+              <option [value]="cardType.id">{{ cardType.name }}</option>
+              }
+            </select>
+            @if(paymentForm.get('cardType')?.hasError('required') &&
+            (paymentForm.get('cardType')?.touched ||
+            paymentForm.get('cardType')?.dirty)){
+            <p class="mt-1 text-xs text-red-600 dark:text-red-400">
+              Seleccione el tipo de tarjeta
+            </p>
+            }
+          </div>
+
+          <div class="mb-3">
+            <label
+              for="voucherCode"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+            >
+              Código de Voucher
+            </label>
+            <input
+              formControlName="voucherCode"
+              type="text"
+              id="voucherCode"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              placeholder="Ingrese el código del voucher"
+            />
+            @if(paymentForm.get('voucherCode')?.hasError('required') &&
+            (paymentForm.get('voucherCode')?.touched ||
+            paymentForm.get('voucherCode')?.dirty)){
+            <p class="mt-1 text-xs text-red-600 dark:text-red-400">
+              Ingrese el código del voucher
+            </p>
+            }
+          </div>
+        </div>
+        }
+
+        <!-- Campos específicos para Transferencia -->
+        @if(paymentForm.get('paymentMethod')?.value === 'transfer'){
+        <div
+          class="mb-4 rounded-lg border border-gray-200 p-3 dark:border-gray-700"
+        >
+          <h4 class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+            Detalles de Transferencia
+          </h4>
+
+          <div class="mb-3">
+            <label
+              for="transferBank"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+            >
+              Banco
+            </label>
+            <select
+              id="transferBank"
+              formControlName="transferBank"
+              class="cursor-pointer block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            >
+              <option value="" disabled selected>Seleccione un banco</option>
+              @for (bank of banks; track bank.id) {
+              <option [value]="bank.id">{{ bank.name }}</option>
+              }
+            </select>
+            @if(paymentForm.get('transferBank')?.hasError('required') &&
+            (paymentForm.get('transferBank')?.touched ||
+            paymentForm.get('transferBank')?.dirty)){
+            <p class="mt-1 text-xs text-red-600 dark:text-red-400">
+              Seleccione el banco de la transferencia
+            </p>
+            }
+          </div>
+
+          <div class="mb-3">
+            <label
+              for="confirmationNumber"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+            >
+              Número de Comprobante
+            </label>
+            <input
+              formControlName="confirmationNumber"
+              type="text"
+              id="confirmationNumber"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              placeholder="Ingrese el número de comprobante"
+            />
+            @if(paymentForm.get('confirmationNumber')?.hasError('required') &&
+            (paymentForm.get('confirmationNumber')?.touched ||
+            paymentForm.get('confirmationNumber')?.dirty)){
+            <p class="mt-1 text-xs text-red-600 dark:text-red-400">
+              Ingrese el número de comprobante
+            </p>
+            }
+          </div>
+
+          <div class="mb-3">
+            <label
+              for="transferDate"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+            >
+              Fecha de Transferencia
+            </label>
+            <input
+              formControlName="transferDate"
+              type="date"
+              id="transferDate"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            />
+            @if(paymentForm.get('transferDate')?.hasError('required') &&
+            (paymentForm.get('transferDate')?.touched ||
+            paymentForm.get('transferDate')?.dirty)){
+            <p class="mt-1 text-xs text-red-600 dark:text-red-400">
+              Ingrese la fecha de la transferencia
+            </p>
+            }
+          </div>
+        </div>
+        }
+
+        <!-- Campos específicos para Cheque -->
+        @if(paymentForm.get('paymentMethod')?.value === 'check'){
+        <div
+          class="mb-4 rounded-lg border border-gray-200 p-3 dark:border-gray-700"
+        >
+          <h4 class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+            Detalles del Cheque
+          </h4>
+
+          <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label
+                for="checkType"
+                class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >
+                Tipo de Cheque
+              </label>
+              <select
+                id="checkType"
+                formControlName="checkType"
+                class="cursor-pointer block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              >
+                <option value="" disabled selected>Seleccione tipo</option>
+                @for (checkType of checkTypes; track checkType.id) {
+                <option [value]="checkType.id">{{ checkType.name }}</option>
+                }
+              </select>
+              @if(paymentForm.get('checkType')?.hasError('required') &&
+              (paymentForm.get('checkType')?.touched ||
+              paymentForm.get('checkType')?.dirty)){
+              <p class="mt-1 text-xs text-red-600 dark:text-red-400">
+                Seleccione el tipo de cheque
+              </p>
+              }
+            </div>
+
+            <div>
+              <label
+                for="checkNumber"
+                class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >
+                Número de Cheque
+              </label>
+              <input
+                formControlName="checkNumber"
+                type="text"
+                id="checkNumber"
+                class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                placeholder="Ej: 001234567"
+              />
+              @if(paymentForm.get('checkNumber')?.hasError('required') &&
+              (paymentForm.get('checkNumber')?.touched ||
+              paymentForm.get('checkNumber')?.dirty)){
+              <p class="mt-1 text-xs text-red-600 dark:text-red-400">
+                Ingrese el número del cheque
+              </p>
+              }
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label
+              for="checkBank"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+            >
+              Banco del Cheque
+            </label>
+            <select
+              id="checkBank"
+              formControlName="checkBank"
+              class="cursor-pointer block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            >
+              <option value="" disabled selected>Seleccione un banco</option>
+              @for (bank of banks; track bank.id) {
+              <option [value]="bank.id">{{ bank.name }}</option>
+              }
+            </select>
+            @if(paymentForm.get('checkBank')?.hasError('required') &&
+            (paymentForm.get('checkBank')?.touched ||
+            paymentForm.get('checkBank')?.dirty)){
+            <p class="mt-1 text-xs text-red-600 dark:text-red-400">
+              Seleccione el banco del cheque
+            </p>
+            }
+          </div>
+
+          <div class="mb-3">
+            <label
+              for="checkHolder"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+            >
+              Titular del Cheque
+            </label>
+            <input
+              formControlName="checkHolder"
+              type="text"
+              id="checkHolder"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              placeholder="Nombre completo del titular"
+            />
+            @if(paymentForm.get('checkHolder')?.hasError('required') &&
+            (paymentForm.get('checkHolder')?.touched ||
+            paymentForm.get('checkHolder')?.dirty)){
+            <p class="mt-1 text-xs text-red-600 dark:text-red-400">
+              Ingrese el nombre del titular del cheque
+            </p>
+            }
+          </div>
+
+          <div class="mb-3">
+            <label
+              for="checkDate"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+            >
+              Fecha del Cheque
+            </label>
+            <input
+              formControlName="checkDate"
+              type="date"
+              id="checkDate"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            />
+            @if(paymentForm.get('checkDate')?.hasError('required') &&
+            (paymentForm.get('checkDate')?.touched ||
+            paymentForm.get('checkDate')?.dirty)){
+            <p class="mt-1 text-xs text-red-600 dark:text-red-400">
+              Ingrese la fecha del cheque
+            </p>
+            }
+          </div>
+
+          <!-- Información adicional para cheques posfechados -->
+          @if(paymentForm.get('checkType')?.value === 'postdated'){
+          <div class="rounded-lg bg-yellow-50 p-2 dark:bg-yellow-900/30">
+            <div class="flex items-center">
+              <svg
+                class="h-4 w-4 text-yellow-600 dark:text-yellow-400 mr-2"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              <p class="text-xs text-yellow-700 dark:text-yellow-300">
+                Cheque posfechado: Verificar fecha de cobro
+              </p>
+            </div>
+          </div>
+          }
+        </div>
+        }
+        <!-- Notas adicionales (opcional para todos los métodos) -->
+        <div class="mb-4">
+          <label
+            for="notes"
+            class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+          >
+            Notas Adicionales (Opcional)
+          </label>
+          <textarea
+            formControlName="notes"
+            id="notes"
+            rows="2"
+            class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            placeholder="Información adicional sobre el pago..."
+          ></textarea>
+        </div>
+
+        <div class="mt-4 flex items-center justify-start gap-3">
+          <button
+            type="submit"
+            [disabled]="!paymentForm.valid"
+            class="disabled:cursor-default disabled:opacity-70 cursor-pointer rounded-lg bg-blue-700 px-4 py-2 text-xs font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          >
+            Registrar Pago
+          </button>
+          <button
+            type="button"
+            (click)="onClose()"
+            class="cursor-pointer rounded-lg bg-gray-500 px-4 py-2 text-xs font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
+          >
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+}

@@ -1,0 +1,202 @@
+@if(isOpen()){
+<!-- Modal backdrop con overlay semi-transparente -->
+<div
+  class="fixed inset-0 z-40 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-gray-900/50 dark:bg-gray-900/80 custom-scrollbar"
+  id="updateUserModal"
+>
+  <div
+    class="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:max-w-lg md:max-w-6xl"
+  >
+    <!-- Encabezado del modal -->
+    <div
+      class="mb-2 flex items-start justify-between pb-3 dark:border-gray-700"
+    >
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+        {{ order() ? "Editar Orden" : "Crear Orden de Trabajo" }}
+      </h3>
+      <button
+        type="button"
+        (click)="onClose()"
+        class="cursor-pointer ml-auto inline-flex items-center rounded-lg bg-transparent p-1.5 text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white"
+      >
+        <svg
+          class="h-5 w-5"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+            clip-rule="evenodd"
+          ></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="max-h-[calc(95vh)] px-1">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <!-- TAB -->
+        <div class="mb-3 border-b border-gray-200 dark:border-gray-700">
+          <ul
+            class="flex flex-wrap justify-center -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400"
+          >
+            @if(!order()){
+            <li class="me-2">
+              <button
+                type="button"
+                (click)="clearTabs()"
+                class="inline-flex items-center justify-center p-4 rounded-t-lg text-red-600 hover:text-red-800 hover:border-red-300 border-b-2 border-transparent cursor-pointer"
+              >
+                🧹 Limpiar
+              </button>
+            </li>
+            } @for (tab of tabs; track $index) {
+            <li class="me-2">
+              <a
+                (click)="selectTab(tab)"
+                [class.text-blue-600]="isActive(tab)"
+                [class.border-b-2]="true"
+                [class.border-blue-600]="isActive(tab)"
+                [class.border-transparent]="!isActive(tab)"
+                [class.dark\\:text-blue-500]="isActive(tab)"
+                class="cursor-pointer inline-flex items-center justify-center p-4 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"
+              >
+                <svg
+                  class="w-4 h-4 me-2"
+                  [class.text-blue-600]="isActive(tab)"
+                  [class.text-gray-400]="!isActive(tab)"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    d="M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm0 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 13a8.949 8.949 0 0 1-4.951-1.488A3.987 3.987 0 0 1 9 13h2a3.987 3.987 0 0 1 3.951 3.512A8.949 8.949 0 0 1 10 18Z"
+                  />
+                </svg>
+                {{ tab }}
+              </a>
+            </li>
+            }
+          </ul>
+        </div>
+        @if(activeTab==='Ingreso'){
+        <app-tab-1
+          [form]="getTab1Form()"
+          [valueVehicle]="vehicleFilter"
+          (vehicle)="selectedVehicle($event)"
+          (cleanModel)="cleanModel($event)"
+          (statusSel)="onChangeStatus($event)"
+          [isEdit]="isEdit"
+          [readonly]="isReadOnly()"
+        ></app-tab-1>
+        }
+        <div class="flex flex-col md:flex-row">
+          <!-- Columna izquierda con las tablas -->
+          <div class="flex-grow">
+            @if(activeTab==='Servicio'){
+
+            <app-tab-2
+              [form]="getTab2Form()"
+              [labourArray]="labourArray"
+              (newArray)="add()"
+              [total]="form.get('tab2.total')?.value"
+              (deleteArray)="delete($event)"
+              (price)="priceLabour($event)"
+              [readonly]="isReadOnly()"
+              [mechanics]="orderMechanics"
+              (mechanicAdded)="onMechanicAdded($event)"
+            ></app-tab-2>
+            <app-tab-3
+              [form]="getTab3Form()"
+              [partsArray]="partsArray"
+              (newArray)="addParts()"
+              [totals]="tab3Totals"
+              (deleteArray)="deleteParts($event)"
+              (incr)="incrementAmount($event)"
+              (decr)="decrementAmount($event)"
+              (price)="priceProduct($event)"
+              [readonly]="isReadOnly()"
+            ></app-tab-3>
+
+            <app-rep-extra
+              [form]="getTab3ExtraForm()"
+              [partsArray]="partsArrayExtra"
+              (newArray)="addPartsExtra()"
+              [totals]="tab3Totals"
+              (deleteArray)="deletePartsExtra($event)"
+              (incr)="incrementAmountExtra($event)"
+              (decr)="decrementAmountExtra($event)"
+              (price)="priceProductExtra($event)"
+              (pushIncrement)="aplyIncrement($event)"
+              [readonly]="isReadOnly()"
+            >
+            </app-rep-extra>
+            }
+          </div>
+
+          <!-- Columna derecha con los totales -->
+          <div class="md:sticky md:top-4 self-start w-full">
+            @if(activeTab==='Servicio'){
+            <!-- ComboBox de Métodos de Pago -->
+            <div
+              formGroupName="tab3"
+              class="md:w-80 lg:w-96 bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mt-4 md:mt-0 md:ml-4 mb-2"
+            >
+              <label
+                for="paymentM"
+                class="block text-sm font-medium text-gray-700 dark:text-white mb-2"
+                >Método de Pago</label
+              >
+              <select
+                id="paymentM"
+                formControlName="paymentM"
+                [disabled]="true"
+                (change)="onPaymentChange()"
+                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="" disabled>Seleccione una opción</option>
+                @for (method of paymentMethods; track $index) {
+                   <option [value]="method.value">{{ method.label }}</option>
+                }
+              </select>
+            </div>
+
+            <app-resumen
+              [totals]="tab3Totals"
+              [form]="getTab3Form()"
+              [readonly]="isReadOnly()"
+            ></app-resumen>
+            }
+          </div>
+        </div>
+        @if(activeTab==='Estado del Vehiculo'){
+        <app-tab-5
+          [form]="getTab5Form()"
+          [imagesArray]="imagesArray"
+          (images)="vehicleCondition($event)"
+          (imageRemoved)="handleImageRemoval($event)"
+          [dataImages]="imagesVehicleData"
+        ></app-tab-5>
+        } @if(activeTab==='Anexos'){
+        <app-tab-6 [form]="getTab6Form()"></app-tab-6>
+        @if(shouldShowButton()){
+        <div class="mt-3 flex items-center justify-start gap-3">
+          <button
+            type="submit"
+            [disabled]="isSubmitDisabled()"
+            class="disabled:cursor-default cursor-pointer rounded-lg bg-blue-700 px-4 py-2 text-xs font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          >
+            {{ order() ? "Actualizar" : "Guardar" }}
+          </button>
+        </div>
+        } } @if(activeTab==='Historial'){
+        <app-tab-log [orderId]="currentOrderId"></app-tab-log>
+        }
+      </form>
+    </div>
+  </div>
+</div>
+<app-spinner [load]="load"></app-spinner>
+}

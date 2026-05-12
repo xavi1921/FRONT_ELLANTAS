@@ -1,0 +1,38 @@
+<header class="antialiased">
+    <nav class="bg-white border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
+      <div class="flex flex-wrap justify-between items-center">
+        <div class="flex justify-start items-center">
+          <app-menu extraClass="border-b" [fluid]="true">
+            <div class="flex items-center">
+              <svg
+                stroke="currentColor"
+                fill="currentColor"
+                stroke-width="0"
+                viewBox="0 0 20 20"
+                class="mr-6 h-6 w-6 cursor-pointer text-gray-600 dark:text-gray-400"
+                height="1em"
+                width="1em"
+                xmlns="http://www.w3.org/2000/svg"
+                (click)="sidebarService.toggleCollapsed()"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              <a
+              class="cursor-pointer text-xl font-semibold dark:text-white"
+              routerLink=""
+              >E LLANTAS</a>
+            </div>
+          </app-menu>
+        </div>
+        <div class="flex items-center lg:order-2"> 
+         <app-theme-toggle></app-theme-toggle>
+         <app-notification></app-notification>
+         <app-profile></app-profile>
+        </div>
+      </div>
+    </nav>
+  </header>

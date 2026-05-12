@@ -1,0 +1,18 @@
+<div class="flex flex-col h-screen overflow-hidden">
+  <app-header ></app-header>
+  <div class="flex flex-1 overflow-hidden  bg-gray-50 dark:bg-gray-900">
+    <app-sidebar extraClass="border-r">
+      <app-group>
+        @for (module of filteredModules; track $index) {
+        <app-item [icon]="module.icon" [link]="module.href" [children]="module.children">
+          {{ module.title }}
+        </app-item>
+        }
+      </app-group>
+    </app-sidebar>
+    <main class="flex-1 overflow-auto custom-scrollbar p-4">
+      <app-breadcrumb></app-breadcrumb>
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

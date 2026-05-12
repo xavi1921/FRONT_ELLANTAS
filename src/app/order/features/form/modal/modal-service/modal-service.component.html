@@ -1,0 +1,165 @@
+<div
+  *ngIf="isVisible"
+  class="fixed inset-0 bg-gray-600/50 dark:bg-gray-900/70 overflow-y-auto h-full w-full z-50"
+>
+  <div
+    class="relative top-5 mx-auto p-5 w-full max-w-3xl shadow-lg rounded-md bg-white dark:bg-gray-800"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="mt-3">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+            Seleccionar {{ title }}
+          </h3>
+          <p class="text-sm text-gray-600 dark:text-gray-300">
+            Seleccione
+            {{ title === "Actividad" ? "una actividad" : "un repuesto" }} de la
+            lista filtrada
+          </p>
+        </div>
+        <button
+          type="button"
+          (click)="closeModal()"
+          class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Banner de búsqueda -->
+      <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+        <div class="flex items-center">
+          <svg
+            class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            ></path>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-blue-900 dark:text-blue-200">
+              Búsqueda: "{{ searchTerm }}"
+            </p>
+            <p class="text-sm text-blue-700 dark:text-blue-300">
+              {{ services.length }} servicio(s) encontrado(s)
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input de búsqueda -->
+      <div class="mb-4">
+        <input
+          type="text"
+          [(ngModel)]="serviceFilter"
+          [ngModelOptions]="{ standalone: true }"
+          (input)="filterServices()"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+          placeholder="Buscar servicio por nombre o descripción..."
+        />
+      </div>
+
+      <div class="border border-gray-200 dark:border-gray-700 rounded-lg">
+        <div class="max-h-96 overflow-y-auto">
+
+          <!-- Loader -->
+          <div *ngIf="isLoading" class="p-8 text-center">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+            <p class="mt-2 text-gray-600 dark:text-gray-300">Cargando servicios...</p>
+          </div>
+
+          <!-- No hay resultados -->
+          <div *ngIf="!isLoading && filteredServices.length === 0" class="p-8 text-center text-gray-500 dark:text-gray-400">
+            <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            No se encontraron servicios
+          </div>
+
+          <!-- Lista de servicios -->
+          <div class="divide-y divide-gray-200 dark:divide-gray-700" *ngIf="!isLoading && services.length > 0">
+            <div *ngFor="let service of paginatedServices; trackBy: trackByServiceId"
+                 class="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                 (click)="selectService(service)"
+                 [class.bg-teal-50]="selectedService?._id === service._id">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center flex-1">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    <div class="h-10 w-10 rounded-lg bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
+                      <svg class="h-5 w-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="ml-4 flex-1">
+                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ service.name }}</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-300">
+                      <span class="font-semibold text-green-600 dark:text-green-400">${{ service.price || service.sale_price }}</span>
+                      <span *ngIf="service.description" class="ml-2">• {{ service.description }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="selectedService?._id === service._id" class="text-teal-600 dark:text-teal-400 flex-shrink-0">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div *ngIf="!isLoading && services.length > servicesPerPage" class="bg-gray-50 dark:bg-gray-700/40 px-4 py-3 border-t border-gray-200 dark:border-gray-600 rounded-b-lg">
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-700 dark:text-gray-300">
+            Mostrando {{ getPaginationStart() }} a {{ getPaginationEnd() }} de {{ services.length }} servicios
+          </div>
+          <div class="flex items-center space-x-2">
+            <button type="button" (click)="previousPage()" [disabled]="currentPage === 1"
+              class="px-3 py-1 text-sm font-medium text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
+              Anterior
+            </button>
+            <span class="text-sm text-gray-700 dark:text-gray-300">Página {{ currentPage }} de {{ getTotalPages() }}</span>
+            <button type="button" (click)="nextPage()" [disabled]="currentPage === getTotalPages()"
+              class="px-3 py-1 text-sm font-medium text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
+              Siguiente
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="flex justify-end space-x-3 mt-6">
+        <button type="button" (click)="closeModal()"
+          class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
+          Cancelar
+        </button>
+        <button type="button" (click)="confirmSelection()" [disabled]="!selectedService"
+          class="px-4 py-2 text-sm font-medium text-white bg-teal-600 dark:bg-teal-500 border border-transparent rounded-lg hover:bg-teal-700 dark:hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
+          Seleccionar Servicio
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,92 @@
+<form >
+  <div class="w-full">
+    <!-- Título del componente -->
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Estado de Vehiculo</h2>
+    
+    <!-- Contenedor de imágenes -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+      <!-- Imágenes cargadas (renderizado dinámico) -->
+      @for (image of uploadedImages; track image.id) {
+        <div class="relative group">
+          <img [src]="image.url" [alt]="image.name"     (click)="openImageViewer(image)" class="cursor-pointer h-32 w-full object-cover rounded-lg bg-gray-100 dark:bg-gray-700">
+          <button 
+            type="button" 
+            class="cursor-pointer absolute bottom-2 right-2 bg-red-500 text-white rounded-full p-1 transition-opacity"
+            (click)="deleteImage(image.id)"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      }
+    </div>
+    
+    <!-- Área de carga de imágenes -->
+    <div 
+      class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800"
+      (click)="fileInput.click()"
+      (dragover)="$event.preventDefault(); dropAreaActive = true"
+      (dragleave)="dropAreaActive = false"
+      (drop)="$event.preventDefault(); handleDrop($event); dropAreaActive = false"
+      [class.border-blue-500]="dropAreaActive"
+      [class.dark:border-blue-400]="dropAreaActive"
+    >
+      <div class="flex flex-col items-center justify-center pt-5 pb-6">
+        <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+        </svg>
+        <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
+          <span class="font-semibold">Click to upload</span> or drag and drop
+        </p>
+        <p class="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF</p>
+      </div>
+      <input 
+        #fileInput
+        type="file" 
+        class="hidden" 
+        accept=".svg,.png,.jpg,.jpeg,.gif"
+        (change)="handleFileInput($event)"
+        multiple
+      />
+    </div>
+    <!-- Mensaje de error (opcional) -->
+    @if (errorMessage) {
+      <div class="mt-2 text-sm text-red-600 dark:text-red-400">
+        {{ errorMessage }}
+      </div>
+    }
+  </div>
+
+  <!-- Modal para visualizar imagen completa -->
+  @if (selectedImage) {
+    <div 
+      class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+      (click)="closeImageViewer()"
+    >
+      <div class="relative max-w-4xl w-full max-h-[90vh] flex flex-col">
+        <!-- Botón de cerrar -->
+        <button 
+          type="button" 
+          class="cursor-pointer absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 z-10"
+          (click)="closeImageViewer()"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        
+        <!-- Imagen -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center">
+          <img 
+            [src]="selectedImage.url" 
+            [alt]="selectedImage.name" 
+            class="max-h-[80vh] max-w-full object-contain"
+            (click)="$event.stopPropagation()"
+          >
+        </div>
+        
+      </div>
+    </div>
+  }
+</form>

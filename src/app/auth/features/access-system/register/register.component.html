@@ -1,0 +1,405 @@
+<div
+  class="flex items-center justify-center overflow-y-auto overflow-x-hidden dark:bg-gray-900/80"
+>
+  <div
+    class="relative max-h-100vh w-full max-w-md overflow-y-auto rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:max-w-lg md:max-w-4xl"
+  >
+    <div
+      class="mb-2 flex items-start justify-between pb-3 dark:border-gray-700"
+    >
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+        Crear cuenta de usuario
+      </h3>
+    </div>
+
+    <div class="max-h-full overflow-y-auto px-1">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <label
+          class="mb-3 block text-sm font-bold text-blue-700 dark:text-blue-400"
+          >Datos del Empleado</label
+        >
+        <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-4">
+          <div>
+            <label
+              for="user-permissions"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+            >
+              Tipo de Documento
+            </label>
+            <select
+              formControlName="tipoDoc"
+              (change)="onTypeChange()"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            >
+              <option selected>DNI</option>
+              <option>RUC</option>
+            </select>
+          </div>
+          <div>
+            <label
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >N° Identificación</label
+            >
+            <input
+              type="text"
+              formControlName="dni"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            />
+            @if(form.get('dni')?.hasError('invalidCedula') &&
+            (form.get('dni')?.touched || form.get('dni')?.dirty)){
+            <app-tool-tip
+              [message]="'La cédula debe contener 10 dígitos y ser válida'"
+            ></app-tool-tip>
+            } @if(form.get('dni')?.hasError('invalidRuc') &&
+            (form.get('dni')?.touched || form.get('dni')?.dirty)){
+            <app-tool-tip
+              [message]="'El RUC debe contener 13 dígitos y ser válido'"
+            ></app-tool-tip>
+            }
+          </div>
+          <div>
+            <label
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >Telefono</label
+            >
+            <input
+              type="text"
+              formControlName="cellPhone"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              value="Green"
+            />
+            @if(form.get('cellPhone')?.hasError('required') &&
+            (form.get('cellPhone')?.touched || form.get('cellPhone')?.dirty)){
+            <app-tool-tip [message]="'Ingrese su telefono'"></app-tool-tip>
+            } @if(form.get('cellPhone')?.hasError('invalidNumber')){
+            <app-tool-tip [message]="'Ingrese solo numeros'"></app-tool-tip>
+            }
+            @if (form.get('cellPhone')?.hasError('invalidLength')) {
+            <app-tool-tip
+              [message]="
+                'El número debe tener 9 (convencional) o 10 (celular) dígitos'
+              "
+            ></app-tool-tip>
+            }
+          </div>
+          <div>
+            <label
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >Cargo</label
+            >
+            <input
+              type="text"
+              formControlName="position"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              value="Green"
+            />
+          </div>
+        </div>
+
+        <!-- FULLNAME EMAIL-->
+        <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div class="mb-3">
+            <label
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >Nombre Completo</label
+            >
+            <input
+              type="text"
+              formControlName="fullName"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              value="bonnie.green@company.com"
+            />
+            @if(form.get('fullName')?.hasError('required') &&
+            (form.get('fullName')?.touched || form.get('fullName')?.dirty)){
+            <app-tool-tip
+              [message]="'Ingrese su nombre completo'"
+            ></app-tool-tip>
+            } @if(form.get('fullName')?.hasError('invalidText')){
+            <app-tool-tip [message]="'Ingrese solo letras'"></app-tool-tip>
+            }
+          </div>
+          <div class="mb-3">
+            <label
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >Email</label
+            >
+            <input
+              type="email"
+              formControlName="email"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              value="bonnie.green@company.com"
+            />
+            @if(form.get('email')?.hasError('required') &&
+            (form.get('email')?.touched || form.get('email')?.dirty)){
+            <app-tool-tip
+              [message]="'Ingrese su correo electrónico'"
+            ></app-tool-tip>
+            } @if(form.get('email')?.hasError('invalidEmail')){
+            <app-tool-tip
+              [message]="'Ingrese un correo electrónico válido'"
+            ></app-tool-tip>
+            }
+          </div>
+        </div>
+        <!-- Fecha de Inicio - Genero-->
+        <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label
+              for="gender"
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+            >
+              Genero
+            </label>
+            <select
+              id="gender"
+              formControlName="gender"
+              class="cursor-pointer block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            >
+              <option>MASCULINO</option>
+              <option>FEMENINO</option>
+            </select>
+          </div>
+
+          <div>
+            <label
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >Fecha Inicio</label
+            >
+            <input
+              formControlName="startDate"
+              type="date"
+              class="block w-full cursor-pointer rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            />
+            @if(form.get('startDate')?.hasError('invalidDate')){
+            <app-tool-tip
+              [message]="'No puede seleccionar una fecha proxima'"
+            ></app-tool-tip>
+            }
+          </div>
+        </div>
+        <label
+          class="mb-3 block text-sm font-bold text-blue-700 dark:text-blue-400"
+          >Datos del Usuario</label
+        >
+        <!-- Contraseña y Permisos -->
+        <div class="mb-3">
+          <div>
+            <label
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >Nombre de Usuario</label
+            >
+            <input
+              type="text"
+              formControlName="username"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            />
+          </div>
+        </div>
+
+        <!-- Confirmar contraseña -->
+        <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div class="relative">
+            <label
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >Contraseña
+            </label>
+            <input
+              formControlName="password"
+              [type]="isShowingPassword ? 'text' : 'password'"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            />
+            @if(form.get('password')?.hasError('required') &&
+            (form.get('password')?.touched || form.get('password')?.dirty)){
+            <app-tool-tip [message]="'Ingrese su contraseña'"></app-tool-tip>
+            } @if(!form.get('password')?.hasError('required')
+            &&form.get('password')?.invalid && form.get('password')?.touched){
+            <app-tool-tip
+              [message]="
+                'La contraseña debe tener al menos 8 caracteres, incluyendo una mayúscula, un número y un carácter especial'
+              "
+            ></app-tool-tip>
+            }
+            <button
+              type="button"
+              (click)="togglePassword()"
+              class="absolute right-2 top-[32px] cursor-pointer"
+            >
+              @if(isShowingPassword){
+              <svg
+                class="w-6 h-6 text-gray-800 dark:text-white"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke="currentColor"
+                  stroke-width="2"
+                  d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"
+                />
+                <path
+                  stroke="currentColor"
+                  stroke-width="2"
+                  d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                />
+              </svg>
+
+              }@else {
+              <svg
+                class="w-6 h-6 text-gray-800 dark:text-white"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3.933 13.909A4.357 4.357 0 0 1 3 12c0-1 4-6 9-6m7.6 3.8A5.068 5.068 0 0 1 21 12c0 1-3 6-9 6-.314 0-.62-.014-.918-.04M5 19 19 5m-4 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                />
+              </svg>
+
+              }
+            </button>
+          </div>
+          <div class="relative">
+            <label
+              class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+              >Confirmar Contraseña</label
+            >
+            <input
+              [type]="isConfirmenPassword ? 'text' : 'password'"
+              formControlName="confirmPassword"
+              class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            />
+            @if(form.get('confirmPassword')?.hasError('required') &&
+            (form.get('confirmPassword')?.touched ||
+            form.get('confirmPassword')?.dirty)){
+            <app-tool-tip [message]="'Ingrese su contraseña'"></app-tool-tip>
+            } @if(form.hasError('passwordMismatch') &&
+            form.get('confirmPassword')?.touched){
+            <app-tool-tip
+              [message]="'Las contraseñas no coinciden!'"
+            ></app-tool-tip>
+            }
+            <button
+              type="button"
+              (click)="togglePasswordCon()"
+              class="absolute right-2 top-[32px] cursor-pointer"
+            >
+              @if(isConfirmenPassword){
+              <svg
+                class="w-6 h-6 text-gray-800 dark:text-white"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke="currentColor"
+                  stroke-width="2"
+                  d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"
+                />
+                <path
+                  stroke="currentColor"
+                  stroke-width="2"
+                  d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                />
+              </svg>
+
+              }@else {
+              <svg
+                class="w-6 h-6 text-gray-800 dark:text-white"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3.933 13.909A4.357 4.357 0 0 1 3 12c0-1 4-6 9-6m7.6 3.8A5.068 5.068 0 0 1 21 12c0 1-3 6-9 6-.314 0-.62-.014-.918-.04M5 19 19 5m-4 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                />
+              </svg>
+
+              }
+            </button>
+          </div>
+        </div>
+
+        <!-- Asignar rol - Versión compacta -->
+        <div class="mb-3">
+          <label
+            class="block text-sm font-medium text-blue-700 dark:text-blue-400"
+            >Asignar Rol</label
+          >
+          <ul
+            class="flex flex-col sm:flex-row w-full items-start sm:items-center rounded-lg border-gray-200 bg-white text-sm font-medium text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+          >
+            @for (role of roles; track $index) {
+            <li class="w-full sm:w-auto border-gray-200 dark:border-gray-600">
+              <div class="flex items-center pl-3">
+                <input
+                  type="radio"
+                  [value]="role._id"
+                  formControlName="roles"
+                  class="h-3 w-3 rounded border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 dark:ring-offset-gray-700"
+                />
+                <label
+                  class="ml-2 py-2 text-xs font-medium text-gray-900 dark:text-gray-300"
+                  >{{ role.name }}
+                </label>
+              </div>
+            </li>
+            }
+          </ul>
+        </div>
+
+        <!-- Estado - Versión compacta -->
+        <div>
+          <label
+            class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
+            >Estado</label
+          >
+          <label class="relative inline-flex cursor-pointer items-center">
+            <input
+              type="checkbox"
+              class="peer sr-only"
+              (change)="toggle()"
+              [checked]="status"
+            />
+            <div
+              class="peer h-5 w-9 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:bg-gray-700 dark:peer-focus:ring-blue-800"
+            ></div>
+            <span
+              class="ml-2 text-xs font-medium text-gray-500 dark:text-gray-400"
+              >{{ status ? "Activo" : "Inactivo" }}
+            </span>
+          </label>
+        </div>
+
+        <div class="mt-3 flex items-center justify-start gap-3">
+          <button
+            type="submit"
+            [disabled]="!form.valid"
+            class="disabled:cursor-default cursor-pointer rounded-lg bg-blue-700 px-4 py-2 text-xs font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          >
+            Crear
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

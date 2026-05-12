@@ -1,0 +1,17 @@
+<h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Anexos</h2>
+<form [formGroup]="form()!">
+    <div class="w-full">
+        <!-- Título del componente -->
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Firma del cliente (opcional)</h2>
+       <div class="">
+        <app-signature (signatureCompleted)="isSignatured($event)" ></app-signature>
+       </div>
+        <div class="mt-4 flex justify-between items-center"> 
+            <button type="button" class="cursor-pointer px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 font-bold" (click)="clearSignature($event)">
+            Eliminar Firma
+            </button>
+            <span class=" text-gray-600 dark:text-gray-300">Dibuja tu firma en el área de arriba.</span>
+          </div>
+      </div>
+</form>
+
