@@ -9,11 +9,11 @@
  * @constant
  */
 
-const URL_LOCAL = 'http://localhost:4000/';
-const URL_PROD = 'https://www.appfsa.com/';
+const URL_LOCAL = 'http://131.196.12.248:4000/';
+const URL_PROD = 'https://ellantas.emitexapi.com/';
 const API_URL_IDENTITY='http://72.62.82.169:8000/'
 //Cambiar la variable dependiendo del ambiente que se encuentre
 export const environment = {
-  API_URL: URL_LOCAL,
+  API_URL: URL_PROD,
   API_URL_IDENTITY:API_URL_IDENTITY
 };
