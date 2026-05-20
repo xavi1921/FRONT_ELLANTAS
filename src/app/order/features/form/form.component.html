@@ -197,7 +197,7 @@
               INFORMACIÓN DEL VEHÍCULO
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="relative md:col-span-2">
+              <div class="md:col-span-2">
                 <label
                   class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
@@ -213,31 +213,43 @@
                     *
                   </span>
                 </label>
-                <div class="relative">
-                  <input
-                    type="text"
-                    formControlName="vehicleFilter"
-                    (focus)="showVehicleSuggestions = true"
-                    (blur)="hideSuggestions()"
-                    placeholder="Buscar por placa o nombre del propietario..."
-                    class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  />
 
-                  <!-- Botón limpiar -->
+                <!-- Fila: input + botón Nuevo vehículo -->
+                <div class="flex gap-2 items-center">
+                  <div class="relative flex-1">
+                    <input
+                      type="text"
+                      formControlName="vehicleFilter"
+                      [readonly]="vehicleCreateMode || isFormDisabled"
+                      (focus)="showVehicleSuggestions = true"
+                      (blur)="hideSuggestions()"
+                      placeholder="Buscar por placa o nombre del propietario..."
+                      class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    />
+                    <!-- Botón limpiar -->
+                    <button
+                      type="button"
+                      *ngIf="selectedVehicle && !vehicleCreateMode"
+                      (click)="clearVehicleSelection()"
+                      class="absolute right-2 top-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
+                    >
+                      ×
+                    </button>
+                  </div>
                   <button
                     type="button"
-                    *ngIf="selectedVehicle"
-                    (click)="clearVehicleSelection()"
-                    class="absolute right-2 top-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
+                    *ngIf="!isFormDisabled && !isEditMode"
+                    (click)="toggleVehicleMode()"
+                    class="shrink-0 cursor-pointer rounded-md border border-teal-500 bg-teal-50 px-3 py-2 text-sm font-medium text-teal-700 hover:bg-teal-100 dark:border-teal-400 dark:bg-gray-700 dark:text-teal-400 dark:hover:bg-gray-600 whitespace-nowrap"
                   >
-                    ×
+                    {{ vehicleCreateMode ? '✕ Cancelar' : '+ Nuevo vehículo' }}
                   </button>
                 </div>
 
                 <!-- Vehicle Suggestions -->
                 <div
-                  *ngIf="showVehicleSuggestions"
-                  class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto"
+                  *ngIf="showVehicleSuggestions && !vehicleCreateMode"
+                  class="relative z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto"
                 >
                   <div
                     *ngIf="noVehiclesFound"
@@ -254,23 +266,83 @@
                   >
                     <div class="flex items-center justify-between">
                       <div>
-                        <div
-                          class="font-medium text-gray-900 dark:text-gray-100"
-                        >
-                          {{ vehicle.plate }}
-                        </div>
-                        <div class="text-sm text-gray-600 dark:text-gray-300">
-                          {{ vehicle.model }} - {{ vehicle.owner.fullName }}
-                        </div>
+                        <div class="font-medium text-gray-900 dark:text-gray-100">{{ vehicle.plate }}</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-300">{{ vehicle.model }} - {{ vehicle.owner?.fullName || 'Sin propietario' }}</div>
                       </div>
-                      <div
-                        *ngIf="vehicle.hasActiveOrder"
-                        class="text-xs text-red-600 font-medium"
-                      >
-                        ORDEN ACTIVA
-                      </div>
+                      <div *ngIf="vehicle.hasActiveOrder" class="text-xs text-red-600 font-medium">ORDEN ACTIVA</div>
                     </div>
                   </div>
+                </div>
+
+                <!-- Formulario inline de nuevo vehículo -->
+                <div
+                  *ngIf="vehicleCreateMode"
+                  class="mt-3 rounded-lg border border-teal-200 bg-teal-50 p-4 dark:border-teal-700 dark:bg-gray-700"
+                  [formGroup]="newVehicleForm"
+                >
+                  <p class="mb-3 text-sm font-semibold text-teal-700 dark:text-teal-400">Datos del nuevo vehículo (sin propietario)</p>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Placa + botón buscar -->
+                    <div class="sm:col-span-2">
+                      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Placa *</label>
+                      <div class="flex gap-2">
+                        <input formControlName="plate" type="text" placeholder="Ej. ABC-1234"
+                          class="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                        <button
+                          type="button"
+                          (click)="lookupVehicleByPlate()"
+                          [disabled]="vehicleLookupLoading"
+                          class="shrink-0 cursor-pointer rounded-md bg-teal-600 px-3 py-2 text-xs font-semibold text-white hover:bg-teal-700 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1"
+                        >
+                          <span *ngIf="vehicleLookupLoading" class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                          <span>{{ vehicleLookupLoading ? 'Buscando...' : 'Buscar datos' }}</span>
+                        </button>
+                      </div>
+                      <p *ngIf="newVehicleForm.get('plate')?.invalid && newVehicleForm.get('plate')?.touched" class="text-xs text-red-500 mt-1">Requerido</p>
+                    </div>
+                    <!-- Tipo de vehículo -->
+                    <div>
+                      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo de vehículo *</label>
+                      <select
+                        formControlName="type_veh"
+                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      >
+                        <option value="">Seleccione...</option>
+                        <option *ngFor="let t of vehicleTypes" [value]="t.name">{{ t.name }}</option>
+                      </select>
+                      <p *ngIf="newVehicleForm.get('type_veh')?.invalid && newVehicleForm.get('type_veh')?.touched" class="text-xs text-red-500 mt-1">Requerido</p>
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Marca *</label>
+                      <input formControlName="brand" type="text" placeholder="Ej. Toyota"
+                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                      <p *ngIf="newVehicleForm.get('brand')?.invalid && newVehicleForm.get('brand')?.touched" class="text-xs text-red-500 mt-1">Requerido</p>
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Modelo *</label>
+                      <input formControlName="model" type="text" placeholder="Ej. Corolla"
+                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                      <p *ngIf="newVehicleForm.get('model')?.invalid && newVehicleForm.get('model')?.touched" class="text-xs text-red-500 mt-1">Requerido</p>
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Año *</label>
+                      <input formControlName="year_vehicle" type="number" placeholder="Ej. 2020"
+                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                      <p *ngIf="newVehicleForm.get('year_vehicle')?.invalid && newVehicleForm.get('year_vehicle')?.touched" class="text-xs text-red-500 mt-1">Año inválido</p>
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Serie del chasis</label>
+                      <input formControlName="chassis_series" type="text"
+                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    (click)="submitNewVehicle()"
+                    class="mt-3 w-full rounded-md bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 cursor-pointer"
+                  >
+                    Confirmar vehículo
+                  </button>
                 </div>
               </div>
 
@@ -341,8 +413,8 @@
             >
               INFORMACIÓN ADICIONAL
             </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="md:col-span-2">
+            <div class="flex flex-col gap-4">
+              <div>
                 <label
                   class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
@@ -362,27 +434,73 @@
                 >
                   CLIENTE
                 </label>
-                <input
-                  type="text"
-                  readonly
-                  formControlName="client"
-                  class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-              </div>
+                <!-- Modo lectura o ya tiene propietario asignado -->
+                <div *ngIf="isFormDisabled || orderForm.get('ownerId')?.value" class="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    readonly
+                    formControlName="client"
+                    class="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  />
+                  <button
+                    *ngIf="!isFormDisabled"
+                    type="button"
+                    (click)="orderForm.patchValue({ ownerId: '', client: '', contact_client_1: '', contact_client_2: '' }, { emitEvent: false }); ownerSearchTerm = ''"
+                    class="shrink-0 text-xs text-red-500 hover:text-red-700 border border-red-300 rounded px-2 py-2 cursor-pointer"
+                    title="Cambiar propietario"
+                  >✕ Quitar</button>
+                </div>
+                <!-- Modo edición sin propietario: buscador + botón nuevo -->
+                <div *ngIf="!isFormDisabled && !orderForm.get('ownerId')?.value && !ownerCreateMode" class="relative">
+                  <div class="flex gap-2 items-center">
+                    <input
+                      type="text"
+                      [(ngModel)]="ownerSearchTerm"
+                      [ngModelOptions]="{ standalone: true }"
+                      (input)="onOwnerInput()"
+                      (blur)="hideOwnerDropdown()"
+                      placeholder="Buscar propietario por nombre o cédula..."
+                      class="flex-1 p-2 border border-teal-400 dark:border-teal-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                    />
+                    <div *ngIf="ownerSearchLoading" class="shrink-0">
+                      <div class="h-4 w-4 animate-spin rounded-full border-2 border-teal-500 border-t-transparent"></div>
+                    </div>
+                    <button
+                      type="button"
+                      (click)="toggleOwnerCreateMode()"
+                      class="shrink-0 cursor-pointer rounded-md border border-teal-500 bg-teal-50 px-3 py-2 text-xs font-medium text-teal-700 hover:bg-teal-100 dark:border-teal-400 dark:bg-gray-700 dark:text-teal-400 whitespace-nowrap"
+                    >+ Nuevo cliente</button>
+                  </div>
+                  <div
+                    *ngIf="showOwnerDropdown"
+                    class="absolute z-20 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl max-h-52 overflow-y-auto"
+                  >
+                    <div
+                      *ngFor="let owner of ownerSearchResults"
+                      (mousedown)="selectOwner(owner)"
+                      class="px-3 py-2 hover:bg-teal-50 dark:hover:bg-teal-900/30 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                    >
+                      <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ owner.fullName }}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">{{ owner.identification_number ?? '' }} · {{ owner.cell_phone ?? '' }}</p>
+                    </div>
+                  </div>
+                </div>
 
-              <div class="flex items-center">
-                <input
-                  type="checkbox"
-                  formControlName="client_contact"
-                  id="client_contact"
-                  class="h-4 w-4 text-teal-600 border-gray-300 dark:border-gray-600 rounded focus:ring-teal-500"
-                />
-                <label
-                  for="client_contact"
-                  class="ml-2 text-sm text-gray-700 dark:text-gray-300"
-                >
-                  Cliente contactado
-                </label>
+                <!-- Checkbox debajo del campo cliente -->
+                <div class="flex items-center mt-3">
+                  <input
+                    type="checkbox"
+                    formControlName="client_contact"
+                    id="client_contact"
+                    class="h-4 w-4 text-teal-600 border-gray-300 dark:border-gray-600 rounded focus:ring-teal-500"
+                  />
+                  <label
+                    for="client_contact"
+                    class="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                  >
+                    Cliente contactado
+                  </label>
+                </div>
               </div>
             </div>
           </div>
@@ -1320,6 +1438,14 @@
   class="fixed inset-0 z-[9998]"
   (click)="closeLabourPopover()"
 ></div>
+
+<!-- Modal de creación de cliente (reutilizado desde owner) -->
+<app-modal
+  [isOpen]="ownerCreateMode"
+  [owner]="null"
+  (save)="onOwnerSaved($event)"
+  (closeModal)="ownerCreateMode = false"
+></app-modal>
 
 <!-- ── Popover de mecánicos por actividad ─────────────────────────────────── -->
 <div

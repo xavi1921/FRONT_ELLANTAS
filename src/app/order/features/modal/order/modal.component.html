@@ -86,6 +86,7 @@
           [form]="getTab1Form()"
           [valueVehicle]="vehicleFilter"
           (vehicle)="selectedVehicle($event)"
+          (newVehicle)="onNewVehicle($event)"
           (cleanModel)="cleanModel($event)"
           (statusSel)="onChangeStatus($event)"
           [isEdit]="isEdit"

@@ -106,9 +106,9 @@
                 scope="row"
                 class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white"
               >
-                {{ vehicle.owner.fullName }}
+                {{ vehicle.owner?.fullName || 'Sin propietario' }}
               </th>
-              <td class="px-4 py-3">{{ vehicle.type_veh.name }}</td>
+              <td class="px-4 py-3">{{ vehicle.type_veh?.name }}</td>
               <td class="px-4 py-3">{{ vehicle.plate }}</td>
               <td class="px-4 py-3">{{ vehicle.model }}</td>
               <td class="px-4 py-3 flex items-center justify-end">

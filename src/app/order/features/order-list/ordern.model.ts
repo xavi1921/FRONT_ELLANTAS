@@ -117,8 +117,11 @@ export function transformationData(data: any) {
     })),
     preInvoice: {
       _id: data.tab3._id,
-      subscriber: data.tab1.ownerId,
-      vehicle: data.tab1.vehicleId,
+      subscriber: data.tab1.ownerId || null,
+      vehicle: data.tab1.vehicleId || null,
+      ...((!data.tab1.vehicleId && data.tab1.vehicleData?.plate)
+        ? { vehicleData: data.tab1.vehicleData }
+        : {}),
       total_inventory: data.tab3.total_r,
       total_labour: data.tab3.total_mo || 0,
       sub_total: data.tab3.subTotal,

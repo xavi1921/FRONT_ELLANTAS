@@ -144,6 +144,14 @@ export class ModalComponent implements OnDestroy {
         contact_client_2: [''],
         ownerId: [''],
         vehicleId: [''],
+        vehicleData: this.fb.group({
+          type_veh: [''],
+          plate: [''],
+          brand: [''],
+          model: [''],
+          year_vehicle: [''],
+          chassis_series: [''],
+        }),
         observation: [''],
         client: [''],
         client_contact: [false],
@@ -280,22 +288,34 @@ export class ModalComponent implements OnDestroy {
    *
    * @param {dataVehicle} o - Objeto que representa al vehículo seleccionado con metadatos asociados.
    */
+  onNewVehicle(vehicleData: any) {
+    this.form.get('tab1.vehicleId')?.setValue('', { emitEvent: false });
+    this.form.get('tab1.vehicleFilter')?.setValue(vehicleData.plate, { emitEvent: false });
+    this.form.get('tab1.model_veh')?.setValue(vehicleData.model, { emitEvent: false });
+    this.form.get('tab1.ownerId')?.setValue('', { emitEvent: false });
+    this.form.get('tab1.client')?.setValue('Sin propietario', { emitEvent: false });
+    this.form.get('tab1.contact_client')?.setValue('', { emitEvent: false });
+    this.form.get('tab1.contact_client_2')?.setValue('', { emitEvent: false });
+    this.form.get('tab1.vehicleData')?.setValue(vehicleData, { emitEvent: false });
+  }
+
   selectedVehicle(o: dataVehicle) {
     this.form
       .get('tab1.vehicleFilter')
       ?.setValue(o.value, { emitEvent: false });
     this.form.get('tab1.vehicleId')?.setValue(o._id, { emitEvent: false });
     this.form.get('tab1.model_veh')?.setValue(o.model, { emitEvent: false });
-    this.form.get('tab1.ownerId')?.setValue(o.owner._id, { emitEvent: false });
+    this.form.get('tab1.ownerId')?.setValue(o.owner?._id ?? '', { emitEvent: false });
+    this.form.get('tab1.vehicleData')?.reset({ emitEvent: false });
     this.form
       .get('tab1.client')
-      ?.setValue(o.owner.fullName, { emitEvent: false });
+      ?.setValue(o.owner?.fullName ?? 'Sin propietario', { emitEvent: false });
     this.form
       .get('tab1.contact_client')
-      ?.setValue(o.owner.cell_phone, { emitEvent: false });
+      ?.setValue(o.owner?.cell_phone ?? '', { emitEvent: false });
     this.form
       .get('tab1.contact_client_2')
-      ?.setValue(o.owner.cell_phone_2, { emitEvent: false });
+      ?.setValue(o.owner?.cell_phone_2 ?? '', { emitEvent: false });
   }
 
   /**

@@ -93,7 +93,7 @@ export class ModalComponent implements OnInit {
     });
     this.vehicleForm.get('valueFilter')?.valueChanges.subscribe((value) => {
       const trimedValue = value.trim();
-      const intitialValue = this.vehicle()?.owner.fullName;
+      const intitialValue = this.vehicle()?.owner?.fullName;
       if (value === '' || value == null) {
         this.cleanFilter();
         return;
@@ -186,13 +186,13 @@ export class ModalComponent implements OnInit {
       this.vehicleForm.patchValue({
         _id: this.vehicle()?._id,
         type_veh: this.vehicle()?.type_veh.name,
-        owner: this.vehicle()?.owner._id,
+        owner: this.vehicle()?.owner?._id,
         plate: this.vehicle()?.plate,
         brand: this.vehicle()?.brand,
         model: this.vehicle()?.model,
         year_vehicle: this.vehicle()?.year_vehicle,
         chassis_series: this.vehicle()?.chassis_series,
-        valueFilter: this.vehicle()?.owner.fullName,
+        valueFilter: this.vehicle()?.owner?.fullName ?? 'Sin propietario',
       });
     } else {
       this.selectFirstType();

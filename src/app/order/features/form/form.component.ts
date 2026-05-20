@@ -16,6 +16,7 @@ import {
   debounceTime,
   distinctUntilChanged,
   filter,
+  finalize,
   map,
   of,
   Subject,
@@ -28,6 +29,10 @@ import { ModalServiceComponent } from './modal/modal-service/modal-service.compo
 import { TabLogComponent } from '../modal/order/sections/tab-log/tab-log.component';
 import { OrderService } from '../../data-access/order.service';
 import { VehicleService } from '../../../vehicle/data-access/vehicle.service';
+import { TypeVehicleService } from '../../../vehicle/data-access/typeVehicle.service';
+import { IdentityLookupService } from '../../../core/services/identity-lookup.service';
+import { OwnerService } from '../../../owner/data-access/owner.service';
+import { ModalComponent as OwnerModalComponent } from '../../../owner/features/modal/owner/modal.component';
 import { Owner } from '../../../owner/features/owner-list/owner.model';
 import { LabourService } from '../../../inventory/data-access/labour.service';
 import { ProductService } from '../../../inventory/data-access/product.service';
@@ -78,6 +83,7 @@ interface Mechanic {
     FormsModule,
     ModalServiceComponent,
     TabLogComponent,
+    OwnerModalComponent,
   ],
   templateUrl: './form.component.html',
 })
@@ -94,6 +100,24 @@ export class FormComponent implements OnInit, OnDestroy {
   filteredVehicles: Vehicle[] = [];
   showVehicleSuggestions = false;
   selectedVehicle: Vehicle | null = null;
+
+  // Inline vehicle creation
+  vehicleCreateMode = false;
+  newVehicleForm!: FormGroup;
+  vehicleTypes: any[] = [];
+  vehicleLookupLoading = false;
+  ownerSearchTerm = '';
+  ownerSearchResults: any[] = [];
+  showOwnerDropdown = false;
+  ownerSearchLoading = false;
+  private ownerSearchTimer: any = null;
+  // Inline owner creation
+  ownerCreateMode = false;
+  private vehicleClassMap: Record<string, string> = {
+    AUTOMOVIL: 'AUTOS',
+    'VEHICULO UTILITARIO': 'CAMIONETA',
+    CAMION: 'PESADO',
+  };
 
   // Status management
   orderStatuses = [
@@ -162,11 +186,22 @@ export class FormComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private orderService: OrderService,
     private vehicleService: VehicleService,
+    private typeVehicleService: TypeVehicleService,
+    private identityLookupService: IdentityLookupService,
+    private ownerService: OwnerService,
     private labourService: LabourService,
     private productService: ProductService,
     private employeeService: employeeService,
   ) {
     this.initializeForm();
+    this.newVehicleForm = this.fb.group({
+      type_veh: ['', Validators.required],
+      plate: ['', Validators.required],
+      brand: ['', Validators.required],
+      model: ['', Validators.required],
+      year_vehicle: ['', [Validators.required, Validators.min(1900), Validators.max(new Date().getFullYear() + 1)]],
+      chassis_series: [''],
+    });
   }
 
   ngOnInit(): void {
@@ -178,7 +213,8 @@ export class FormComponent implements OnInit, OnDestroy {
       this.addInitialRows();
     }
     this.setupVehicleSearch();
-    this.setupMechanicSearch(); // ← NEW
+    this.setupMechanicSearch();
+    this.loadVehicleTypes();
 
     const today = new Date();
     this.minDate = today.toISOString().split('T')[0];
@@ -234,6 +270,10 @@ export class FormComponent implements OnInit, OnDestroy {
       contact_client_2: [''],
       ownerId: [''],
       vehicleId: [''],
+      vehicleData: this.fb.group({
+        type_veh: [''], plate: [''], brand: [''],
+        model: [''], year_vehicle: [''], chassis_series: [''],
+      }),
 
       // Status and observations
       status: [['Pendiente', 'En Progreso'], Validators.required],
@@ -341,19 +381,166 @@ export class FormComponent implements OnInit, OnDestroy {
     this.selectedVehicle = vehicle;
     this.orderForm.patchValue(
       {
-        vehicleFilter: `${vehicle.plate} - ${vehicle.owner.fullName}`,
+        vehicleFilter: vehicle.owner ? `${vehicle.plate} - ${vehicle.owner.fullName}` : vehicle.plate,
         vehicleId: vehicle._id,
         model_veh: vehicle.model,
-        ownerId: vehicle.owner,
+        ownerId: vehicle.owner ?? null,
         plate: vehicle.plate,
-        contact_client_1: vehicle.owner.cell_phone,
-        contact_client_2: vehicle.owner.cell_phone_2,
-        client: vehicle.owner.fullName,
+        contact_client_1: vehicle.owner?.cell_phone ?? '',
+        contact_client_2: vehicle.owner?.cell_phone_2 ?? '',
+        client: vehicle.owner?.fullName ?? 'Sin propietario',
       },
       { emitEvent: false },
     );
     this.showVehicleSuggestions = false;
   }
+  loadVehicleTypes(): void {
+    this.typeVehicleService.combo().subscribe({
+      next: (res) => { this.vehicleTypes = res.data ?? res; },
+      error: () => {},
+    });
+  }
+
+  lookupVehicleByPlate(): void {
+    const plate = this.newVehicleForm.get('plate')?.value;
+    if (!plate || plate.length < 6) {
+      Swal.fire('Atención', 'Ingrese una placa válida (mínimo 6 caracteres) para buscar.', 'warning');
+      return;
+    }
+    this.vehicleLookupLoading = true;
+    this.identityLookupService.getVehicleByPlate(plate)
+      .pipe(finalize(() => (this.vehicleLookupLoading = false)))
+      .subscribe({
+        next: (res) => {
+          if (res?.data) {
+            this.newVehicleForm.patchValue({
+              brand: res.data.marca,
+              model: res.data.modelo,
+              year_vehicle: res.data.anio,
+              chassis_series: res.data.chasis,
+            });
+            this.setVehicleTypeFromClass(res.data.clase);
+          }
+        },
+        error: () => {
+          Swal.fire({
+            toast: true, position: 'top-end', icon: 'info',
+            title: 'No se encontró información para esta placa',
+            text: 'Ingrese los datos de forma manual.',
+            showConfirmButton: false, timer: 4000, timerProgressBar: true,
+          });
+        },
+      });
+  }
+
+  private setVehicleTypeFromClass(vehicleClass: string): void {
+    const mapped = this.vehicleClassMap[vehicleClass];
+    if (!mapped) return;
+    const found = this.vehicleTypes.find((t) => t.name === mapped);
+    if (found) this.newVehicleForm.patchValue({ type_veh: found.name });
+  }
+
+  toggleVehicleMode(): void {
+    this.vehicleCreateMode = !this.vehicleCreateMode;
+    this.newVehicleForm.reset();
+    if (this.vehicleCreateMode) {
+      this.filteredVehicles = [];
+      this.showVehicleSuggestions = false;
+      this.orderForm.patchValue({ vehicleFilter: '', vehicleId: '' }, { emitEvent: false });
+    } else {
+      this.orderForm.get('vehicleData')?.reset();
+    }
+  }
+
+  submitNewVehicle(): void {
+    if (this.newVehicleForm.invalid) {
+      this.newVehicleForm.markAllAsTouched();
+      return;
+    }
+    const vd = this.newVehicleForm.value;
+    this.orderForm.patchValue({
+      vehicleFilter: vd.plate,
+      model_veh: vd.model,
+      plate: vd.plate,
+      vehicleId: '',
+      ownerId: '',
+      client: 'Sin propietario',
+      contact_client_1: '',
+      contact_client_2: '',
+    }, { emitEvent: false });
+    this.orderForm.get('vehicleData')?.setValue(vd, { emitEvent: false });
+    this.vehicleCreateMode = false;
+    this.newVehicleForm.reset();
+  }
+
+  onOwnerInput(): void {
+    clearTimeout(this.ownerSearchTimer);
+    const term = this.ownerSearchTerm.trim();
+    if (!term || term.length < 2) {
+      this.ownerSearchResults = [];
+      this.showOwnerDropdown = false;
+      return;
+    }
+    this.ownerSearchLoading = true;
+    this.ownerSearchTimer = setTimeout(() => {
+      this.ownerService.filter(term).subscribe({
+        next: (res) => {
+          this.ownerSearchResults = res.owners ?? res.data ?? res ?? [];
+          this.showOwnerDropdown = this.ownerSearchResults.length > 0;
+          this.ownerSearchLoading = false;
+        },
+        error: () => {
+          this.ownerSearchResults = [];
+          this.ownerSearchLoading = false;
+        },
+      });
+    }, 300);
+  }
+
+  selectOwner(owner: any): void {
+    this.orderForm.patchValue({
+      ownerId: owner._id,
+      client: owner.fullName,
+      contact_client_1: owner.cell_phone ?? '',
+      contact_client_2: owner.cell_phone_2 ?? '',
+    }, { emitEvent: false });
+    this.ownerSearchTerm = '';
+    this.ownerSearchResults = [];
+    this.showOwnerDropdown = false;
+  }
+
+  hideOwnerDropdown(): void {
+    setTimeout(() => { this.showOwnerDropdown = false; }, 200);
+  }
+
+  toggleOwnerCreateMode(): void {
+    this.ownerCreateMode = !this.ownerCreateMode;
+    if (this.ownerCreateMode) {
+      this.ownerSearchTerm = '';
+      this.ownerSearchResults = [];
+      this.showOwnerDropdown = false;
+    }
+  }
+
+  onOwnerSaved(data: any): void {
+    this.ownerService.create(data).subscribe({
+      next: (res: any) => {
+        const created = res.subscriber ?? res.data ?? res;
+        this.selectOwner({
+          _id: created._id,
+          fullName: created.fullName ?? data.razon_social,
+          cell_phone: created.cell_phone ?? data.cell_phone,
+          cell_phone_2: created.cell_phone_2 ?? data.cell_phone_2,
+        });
+        this.ownerCreateMode = false;
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Cliente creado y asignado', showConfirmButton: false, timer: 2500 });
+      },
+      error: (err) => {
+        Swal.fire({ icon: 'error', title: 'Error al crear el cliente', text: err?.error?.message ?? 'Inténtalo de nuevo.' });
+      },
+    });
+  }
+
   clearVehicleSelection(): void {
     this.selectedVehicle = null;
     this.filteredVehicles = [];
@@ -1109,8 +1296,11 @@ export class FormComponent implements OnInit, OnDestroy {
 
       preInvoice: {
         _id: formValue._idPreinvoice,
-        subscriber: formValue.ownerId,
-        vehicle: formValue.vehicleId,
+        subscriber: formValue.ownerId || null,
+        vehicle: formValue.vehicleId || null,
+        ...(!formValue.vehicleId && formValue.vehicleData?.plate
+          ? { vehicleData: formValue.vehicleData }
+          : {}),
         total_inventory: formValue.total_r,
         total_labour: formValue.total_mo,
         sub_total: formValue.subtotal,
@@ -1220,6 +1410,7 @@ export class FormComponent implements OnInit, OnDestroy {
   }
 
   private patchOrderForm(order: Order): void {
+    const sub: any = order.preInvoice.subscriber;
     this.orderForm.patchValue(
       {
         _id: order._id,
@@ -1230,15 +1421,17 @@ export class FormComponent implements OnInit, OnDestroy {
         start_date: this.formatDateForInput(order.start_date),
         start_time: order.start_time,
         request: order.request,
-        vehicleFilter: `${order.preInvoice.vehicle.plate}-${order.preInvoice.subscriber.fullName}`,
+        vehicleFilter: sub
+          ? `${order.preInvoice.vehicle.plate}-${sub.fullName}`
+          : order.preInvoice.vehicle.plate,
         model_veh: order.preInvoice.vehicle.model,
-        contact_client_1: order.preInvoice.subscriber.cell_phone,
-        contact_client_2: order.preInvoice.subscriber.cell_phone_2,
-        ownerId: order.preInvoice.subscriber._id,
+        contact_client_1: sub?.cell_phone ?? '',
+        contact_client_2: sub?.cell_phone_2 ?? '',
+        ownerId: sub?._id ?? '',
         vehicleId: order.preInvoice.vehicle._id,
         status: order.status,
         observation: order.observation,
-        client: order.preInvoice.subscriber.fullName,
+        client: sub?.fullName ?? 'Sin propietario',
         client_contact: order.contact_client,
         total_mo: order.preInvoice?.total_labour,
         total_r: order.preInvoice?.total_inventory,

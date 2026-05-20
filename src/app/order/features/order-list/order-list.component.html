@@ -245,7 +245,7 @@
                 {{ order.codigo }}
               </th>
               <td class="px-4 py-3">
-                {{ order.preInvoice.subscriber.fullName }}
+                {{ order.preInvoice.subscriber?.fullName ?? 'Sin propietario' }}
               </td>
               <td class="px-4 py-3">
                 {{ order.contact_client ? "Sí" : "No" }}

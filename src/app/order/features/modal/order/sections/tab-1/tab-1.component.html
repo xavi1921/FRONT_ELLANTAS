@@ -1,10 +1,12 @@
+@if(form()){
 <form [formGroup]="form()!">
+  <!-- Búsqueda de vehículo — siempre visible -->
   <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
     <div>
       <label
-        for="owner"
+        for="simple-search"
         class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
-        >Vehiculo (Placa)</label
+        >Vehículo (Placa) *</label
       >
       <div class="relative w-full">
         <div
@@ -27,42 +29,45 @@
         <input
           formControlName="vehicleFilter"
           type="text"
-          [readonly]="readonly()"
+          [readonly]="createMode || readonly()"
           name="search"
           id="simple-search"
           (ngModelChange)="cleanFilter()"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-          placeholder="Introduzca la placa o propietario del vehiculo."
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full pl-10 pr-36 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+          placeholder="Buscar placa o propietario..."
           required=""
         />
+        <button
+          type="button"
+          (click)="toggleMode()"
+          [disabled]="readonly()"
+          class="absolute inset-y-0 right-0 my-1 mr-1 cursor-pointer disabled:cursor-default disabled:opacity-50 rounded-md border border-blue-500 bg-blue-50 px-2 text-xs font-medium text-blue-700 hover:bg-blue-100 dark:border-blue-400 dark:bg-gray-700 dark:text-blue-400 dark:hover:bg-gray-600"
+        >
+          {{ createMode ? '✕ Cancelar' : '+ Nuevo vehículo' }}
+        </button>
       </div>
       @if(form()?.get('vehicleFilter')?.hasError('required') &&
       (form()?.get('vehicleFilter')?.touched ||
-      form()?.get('vehicleFilter')?.dirty )){
-      <app-tool-tip [message]="'Debe filtrar un vehiculo'"></app-tool-tip>
-      } @if(filteredVechicle.length>0){
+      form()?.get('vehicleFilter')?.dirty)){
+      <app-tool-tip [message]="'Debe filtrar un vehículo'"></app-tool-tip>
+      }
+      @if(!createMode && filteredVechicle.length > 0){
       <div
-        class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+        class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
       >
         @for (vehicle of filteredVechicle; track $index) {
         <div
-          (click)="
-            selectedVehicle(
-              vehicle._id,
-              vehicle.plate,
-              vehicle.model,
-              vehicle.owner
-            )
-          "
-          class="mb-1 cursor-pointer block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+          (click)="selectedVehicle(vehicle._id, vehicle.plate, vehicle.model, vehicle.owner)"
+          class="mb-1 cursor-pointer rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
         >
           Placa {{ vehicle.plate }}
         </div>
         }
       </div>
-      } @if(notFound){
+      }
+      @if(!createMode && notFound){
       <div
-        class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+        class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
       >
         <p>{{ errorMessage }}</p>
       </div>
@@ -71,7 +76,7 @@
     <div>
       <label
         class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
-        >Modelo del Vehiculo</label
+        >Modelo del Vehículo</label
       >
       <input
         type="text"
@@ -82,48 +87,129 @@
       />
     </div>
   </div>
+
+  <!-- Propietario / teléfonos — solo en modo búsqueda -->
+  @if(!createMode){
   <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
     <div>
-      <label
-        class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
-      >
-        Propietario
-      </label>
+      <label class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400">Propietario</label>
       <input
         formControlName="client"
         readonly
         type="text"
-        id="identification"
         class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
       />
     </div>
     <div>
-      <label
-        class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
-        >Telefono 1
-      </label>
+      <label class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400">Teléfono 1</label>
       <input
         formControlName="contact_client"
         readonly
         type="text"
-        id="identification"
         class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
       />
     </div>
     <div>
-      <label
-        class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400"
-        >Telefono 2
-      </label>
+      <label class="mb-1 block text-sm font-medium text-blue-700 dark:text-blue-400">Teléfono 2</label>
       <input
         formControlName="contact_client_2"
         readonly
         type="text"
-        id="identification"
         class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
       />
     </div>
   </div>
+  }
+
+  <!-- Formulario de nuevo vehículo — se despliega bajo el buscador -->
+  @if(createMode){
+  <div class="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-700 dark:bg-gray-800">
+    <p class="mb-2 text-xs font-semibold text-blue-700 dark:text-blue-400">Datos del nuevo vehículo (sin propietario)</p>
+    <div [formGroup]="newVehicleForm">
+      <div class="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Tipo de vehículo</label>
+          <select
+            formControlName="type_veh"
+            class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+          >
+            <option value="">Seleccione...</option>
+            @for(t of vehicleTypes; track t._id){
+            <option [value]="t.name">{{ t.name }}</option>
+            }
+          </select>
+          @if(newVehicleForm.get('type_veh')?.invalid && newVehicleForm.get('type_veh')?.touched){
+          <app-tool-tip [message]="'Seleccione el tipo'"></app-tool-tip>
+          }
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Placa</label>
+          <input
+            formControlName="plate"
+            type="text"
+            class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            placeholder="Ej. ABC-1234"
+          />
+          @if(newVehicleForm.get('plate')?.invalid && newVehicleForm.get('plate')?.touched){
+          <app-tool-tip [message]="'Ingrese la placa'"></app-tool-tip>
+          }
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Marca</label>
+          <input
+            formControlName="brand"
+            type="text"
+            class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            placeholder="Ej. Toyota"
+          />
+          @if(newVehicleForm.get('brand')?.invalid && newVehicleForm.get('brand')?.touched){
+          <app-tool-tip [message]="'Ingrese la marca'"></app-tool-tip>
+          }
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Modelo</label>
+          <input
+            formControlName="model"
+            type="text"
+            class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            placeholder="Ej. Corolla"
+          />
+          @if(newVehicleForm.get('model')?.invalid && newVehicleForm.get('model')?.touched){
+          <app-tool-tip [message]="'Ingrese el modelo'"></app-tool-tip>
+          }
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Año</label>
+          <input
+            formControlName="year_vehicle"
+            type="number"
+            class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            placeholder="Ej. 2020"
+          />
+          @if(newVehicleForm.get('year_vehicle')?.invalid && newVehicleForm.get('year_vehicle')?.touched){
+          <app-tool-tip [message]="'Ingrese un año válido'"></app-tool-tip>
+          }
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Serie del chasis (opcional)</label>
+          <input
+            formControlName="chassis_series"
+            type="text"
+            class="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+      </div>
+      <button
+        type="button"
+        (click)="submitNewVehicle()"
+        class="mt-1 w-full rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
+      >
+        Confirmar vehículo
+      </button>
+    </div>
+  </div>
+  }
+
   <div class="mb-3">
     <div>
       <label
@@ -268,4 +354,5 @@
     </div>
   </div>
 </form>
+}
 <app-spinner [load]="load"></app-spinner>

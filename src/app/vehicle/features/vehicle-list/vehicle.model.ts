@@ -17,7 +17,7 @@ interface Owner {
 export interface Vehicle {
   _id: string;
   type_veh: Type;
-  owner: Owner;
+  owner?: Owner;
   plate: string;
   brand: string;
   model: string;
