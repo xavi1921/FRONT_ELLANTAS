@@ -29,6 +29,7 @@ interface vehicle {
   _id: string;
   plate: string;
   model: string;
+  year_vehicle?: number;
 }
 interface Image {
   id: string;

@@ -43,6 +43,7 @@ interface Vehicle {
   _id: string;
   plate: string;
   model: string;
+  year_vehicle?: number;
   owner: Owner;
   hasActiveOrder?: boolean;
 }
@@ -266,6 +267,7 @@ export class FormComponent implements OnInit, OnDestroy {
       // Vehicle filtering and selection
       vehicleFilter: ['', Validators.required],
       model_veh: [''],
+      year_veh: [''],
       contact_client_1: [''],
       contact_client_2: [''],
       ownerId: [''],
@@ -384,6 +386,7 @@ export class FormComponent implements OnInit, OnDestroy {
         vehicleFilter: vehicle.owner ? `${vehicle.plate} - ${vehicle.owner.fullName}` : vehicle.plate,
         vehicleId: vehicle._id,
         model_veh: vehicle.model,
+        year_veh: vehicle.year_vehicle ?? '',
         ownerId: vehicle.owner ?? null,
         plate: vehicle.plate,
         contact_client_1: vehicle.owner?.cell_phone ?? '',
@@ -461,6 +464,7 @@ export class FormComponent implements OnInit, OnDestroy {
     this.orderForm.patchValue({
       vehicleFilter: vd.plate,
       model_veh: vd.model,
+      year_veh: vd.year_vehicle,
       plate: vd.plate,
       vehicleId: '',
       ownerId: '',
@@ -550,6 +554,7 @@ export class FormComponent implements OnInit, OnDestroy {
       vehicleFilter: '',
       vehicleId: null,
       model_veh: '',
+      year_veh: '',
       ownerId: '',
       plate: '',
       contact_client_1: '',
@@ -1425,6 +1430,7 @@ export class FormComponent implements OnInit, OnDestroy {
           ? `${order.preInvoice.vehicle.plate}-${sub.fullName}`
           : order.preInvoice.vehicle.plate,
         model_veh: order.preInvoice.vehicle.model,
+        year_veh: order.preInvoice.vehicle.year_vehicle ?? '',
         contact_client_1: sub?.cell_phone ?? '',
         contact_client_2: sub?.cell_phone_2 ?? '',
         ownerId: sub?._id ?? '',
